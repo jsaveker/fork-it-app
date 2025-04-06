@@ -7,22 +7,6 @@ interface FilterPanelProps {
   onChange: (filters: Partial<FilterOptions>) => void
 }
 
-// Common cuisine types
-const CUISINE_TYPES = [
-  'american', 'italian', 'mexican', 'chinese', 'japanese', 'indian', 
-  'thai', 'vietnamese', 'korean', 'mediterranean', 'greek', 'french',
-  'spanish', 'middle_eastern', 'caribbean', 'latin_american', 'brazilian',
-  'vegetarian', 'vegan', 'pizza', 'burger', 'sushi', 'bbq', 'seafood'
-]
-
-// Price level labels
-const PRICE_LABELS = {
-  1: '$',
-  2: '$$',
-  3: '$$$',
-  4: '$$$$'
-}
-
 export default function FilterPanel({ filters, onChange }: FilterPanelProps) {
   const [localPriceLevel, setLocalPriceLevel] = useState<number>(filters.priceLevel[0])
   const [debounceTimer, setDebounceTimer] = useState<number | null>(null)
