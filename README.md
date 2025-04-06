@@ -66,7 +66,7 @@ This project is configured to be deployed on Cloudflare Pages. Simply connect yo
 
 ## License
 
-This project is licensed under the MIT License - see the LICENSE file for details.
+This project is licensed under the Apache 2.0 - see the LICENSE file for details.
 
 ## Acknowledgements
 
