@@ -15,9 +15,5 @@ not_found_handling = "single-page-application"
 pattern = "fork-it.cc"
 custom_domain = true
 
-[[routes]]
-pattern = "*.fork-it.cc"
-custom_domain = true
-
 # Environment variables should be set in the Cloudflare dashboard
 # DO NOT put sensitive keys in this file 
