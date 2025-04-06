@@ -78,7 +78,7 @@ const RestaurantFinder = () => {
         setSelectedRestaurant(highestVotedRestaurant)
       }
     }
-  }, [session])
+  }, [session, getAllVotes])
 
   // Function to find the restaurant with the highest votes
   const findHighestVotedRestaurant = (restaurants: Restaurant[]): Restaurant | null => {
@@ -157,6 +157,25 @@ const RestaurantFinder = () => {
       
       // Update the session state with the updated session
       setSession(updatedSession)
+      
+      // Check if this restaurant should be the selected one
+      const votes = getAllVotes(restaurant.id)
+      const voteCount = votes.upvotes - votes.downvotes
+      
+      // If this restaurant has more votes than the current selected restaurant, select it
+      if (selectedRestaurant) {
+        const selectedVotes = getAllVotes(selectedRestaurant.id)
+        const selectedVoteCount = selectedVotes.upvotes - selectedVotes.downvotes
+        
+        if (voteCount > selectedVoteCount) {
+          console.log('New restaurant has more votes, selecting it:', restaurant.name)
+          setSelectedRestaurant(restaurant)
+        }
+      } else {
+        // If no restaurant is selected, select this one
+        console.log('No restaurant selected, selecting this one:', restaurant.name)
+        setSelectedRestaurant(restaurant)
+      }
     } catch (err) {
       console.error('Error adding restaurant to session:', err)
       setAddError('Failed to add restaurant to session')
