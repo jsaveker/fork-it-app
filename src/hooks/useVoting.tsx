@@ -100,6 +100,13 @@ export const useVoting = () => {
     loadSession()
   }, []) // Only run this effect once on mount
 
+  // Reset loading state if we have a session
+  useEffect(() => {
+    if (session) {
+      setLoading(false)
+    }
+  }, [session])
+
   const handleVote = async (restaurantId: string, isUpvote: boolean) => {
     if (!session) return
     
