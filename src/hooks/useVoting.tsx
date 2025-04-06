@@ -14,6 +14,13 @@ export const useVoting = () => {
     return newId
   })
 
+  // Function to update the URL with the session ID
+  const updateUrlWithSessionId = (sessionId: string) => {
+    const url = new URL(window.location.href)
+    url.searchParams.set('session', sessionId)
+    window.history.replaceState({}, '', url.toString())
+  }
+
   // Function to load a session by ID
   const loadSessionById = async (sessionId: string) => {
     setLoading(true)
@@ -57,6 +64,8 @@ export const useVoting = () => {
         if (!loadedSession) {
           // If no session ID in URL or session not found, create a new one
           loadedSession = await createSession('Default Session')
+          // Update the URL with the new session ID
+          updateUrlWithSessionId(loadedSession.id)
         }
         
         setSession(loadedSession)
