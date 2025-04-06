@@ -16,10 +16,19 @@ export const useVoting = () => {
 
   // Function to update the URL with the session ID
   const updateUrlWithSessionId = (sessionId: string) => {
-    const url = new URL(window.location.href)
-    url.searchParams.set('session', sessionId)
-    window.history.replaceState({}, '', url.toString())
-    console.log('Updated URL with session ID:', sessionId)
+    // Check if the session ID is already in the URL
+    const urlParams = new URLSearchParams(window.location.search)
+    const currentSessionId = urlParams.get('session')
+    
+    // Only update the URL if the session ID is different
+    if (currentSessionId !== sessionId) {
+      console.log('Updating URL with session ID:', sessionId)
+      const url = new URL(window.location.href)
+      url.searchParams.set('session', sessionId)
+      window.history.replaceState({}, '', url.toString())
+    } else {
+      console.log('Session ID already in URL, not updating')
+    }
   }
 
   // Function to load a session by ID
@@ -96,8 +105,11 @@ export const useVoting = () => {
           if (loadedSession) {
             console.log('Successfully loaded session:', loadedSession.id)
             setSession(loadedSession)
-            // Always update the URL to ensure it's consistent
-            updateUrlWithSessionId(loadedSession.id)
+            // Only update the URL if it's different from the current one
+            if (loadedSession.id !== sessionId) {
+              console.log('Session ID from server differs from URL, updating URL')
+              updateUrlWithSessionId(loadedSession.id)
+            }
           } else {
             console.log('Session not found, creating new one')
             await createNewSession()
@@ -171,6 +183,7 @@ export const useVoting = () => {
       setSession(updatedSession)
       
       // Don't update the URL here - we want to keep the same session ID
+      // Even if the server returns a new session ID, we'll keep the original one in the URL
     } catch (err) {
       console.error('Error voting:', err)
       setError('Failed to vote')
