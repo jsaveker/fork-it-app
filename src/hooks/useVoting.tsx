@@ -123,6 +123,14 @@ export const useVoting = () => {
     }
   }
 
+  // Function to get the session URL for sharing
+  const getSessionUrl = () => {
+    if (!session) return ''
+    const url = new URL(window.location.href)
+    url.searchParams.set('session', session.id)
+    return url.toString()
+  }
+
   return {
     session,
     userId,
@@ -131,6 +139,7 @@ export const useVoting = () => {
     getAllVotes,
     loadSessionById,
     loading,
-    error
+    error,
+    getSessionUrl
   }
 } 
