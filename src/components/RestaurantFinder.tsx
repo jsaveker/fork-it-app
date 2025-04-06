@@ -17,7 +17,7 @@ import { useLocation } from '../hooks/useLocation'
 import { useRestaurants } from '../hooks/useRestaurants'
 import { useVoting } from '../hooks/useVoting'
 import { addRestaurant } from '../services/sessionApi'
-import { FilterOptions } from '../types'
+import { FilterOptions, Restaurant } from '../types'
 
 const RestaurantFinder = () => {
   const { location, loading: locationLoading, error: locationError } = useLocation()
@@ -33,7 +33,7 @@ const RestaurantFinder = () => {
     updateFilters,
   } = useRestaurants()
   
-  const { session, loading: sessionLoading, error: sessionError, loadSessionById } = useVoting()
+  const { session, loading: sessionLoading, error: sessionError, loadSessionById, getAllVotes } = useVoting()
   const [addingRestaurant, setAddingRestaurant] = useState(false)
   const [addError, setAddError] = useState<string | null>(null)
 
@@ -59,6 +59,37 @@ const RestaurantFinder = () => {
       }
     }
   }, [session])
+
+  // Select the highest-voted restaurant when the session changes
+  useEffect(() => {
+    if (session && session.restaurants.length > 0) {
+      // Find the restaurant with the highest votes
+      const highestVotedRestaurant = findHighestVotedRestaurant(session.restaurants)
+      if (highestVotedRestaurant) {
+        setSelectedRestaurant(highestVotedRestaurant)
+      }
+    }
+  }, [session])
+
+  // Function to find the restaurant with the highest votes
+  const findHighestVotedRestaurant = (restaurants: Restaurant[]): Restaurant | null => {
+    if (restaurants.length === 0) return null
+
+    let highestVotedRestaurant = restaurants[0]
+    let highestVoteCount = 0
+
+    for (const restaurant of restaurants) {
+      const votes = getAllVotes(restaurant.id)
+      const voteCount = votes.upvotes - votes.downvotes
+
+      if (voteCount > highestVoteCount) {
+        highestVoteCount = voteCount
+        highestVotedRestaurant = restaurant
+      }
+    }
+
+    return highestVoteCount > 0 ? highestVotedRestaurant : null
+  }
 
   const handleRandomRestaurant = () => {
     const restaurant = getRandomRestaurant()
