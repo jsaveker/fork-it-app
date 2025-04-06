@@ -33,7 +33,12 @@ export const useVoting = () => {
       if (loadedSession) {
         console.log('Session loaded successfully:', loadedSession.id)
         setSession(loadedSession)
-        updateUrlWithSessionId(loadedSession.id)
+        // Only update the URL if it's different from the current one
+        const urlParams = new URLSearchParams(window.location.search)
+        const currentSessionId = urlParams.get('session')
+        if (currentSessionId !== loadedSession.id) {
+          updateUrlWithSessionId(loadedSession.id)
+        }
       } else {
         console.log('Session not found, creating new one')
         const newSession = await createSession('Default Session')
@@ -162,7 +167,10 @@ export const useVoting = () => {
         console.log(`Updated votes for restaurant ${restaurantId}: ${updatedVote.upvotes.length} upvotes, ${updatedVote.downvotes.length} downvotes`)
       }
       
+      // Update the session state with the updated session
       setSession(updatedSession)
+      
+      // Don't update the URL here - we want to keep the same session ID
     } catch (err) {
       console.error('Error voting:', err)
       setError('Failed to vote')
