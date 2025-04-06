@@ -219,6 +219,52 @@ export default {
           },
         });
       }
+      else if (path === '/api/add-restaurant' && request.method === 'POST') {
+        // Add a restaurant to a session
+        const { sessionId, restaurant } = await request.json();
+        
+        if (!sessionId || !restaurant) {
+          return new Response(JSON.stringify({ error: 'Missing required parameters' }), {
+            status: 400,
+            headers: {
+              'Content-Type': 'application/json',
+              ...corsHeaders,
+            },
+          });
+        }
+        
+        const sessionData = await SESSIONS.get(sessionId);
+        
+        if (!sessionData) {
+          return new Response(JSON.stringify({ error: 'Session not found' }), {
+            status: 404,
+            headers: {
+              'Content-Type': 'application/json',
+              ...corsHeaders,
+            },
+          });
+        }
+        
+        const session = JSON.parse(sessionData);
+        
+        // Check if restaurant already exists in the session
+        if (!session.restaurants.some(r => r.id === restaurant.id)) {
+          session.restaurants.push(restaurant);
+          
+          // Update expiry
+          session.expires = Date.now() + SESSION_EXPIRY;
+          
+          // Save the updated session
+          await SESSIONS.put(sessionId, JSON.stringify(session));
+        }
+        
+        return new Response(JSON.stringify(session), {
+          headers: {
+            'Content-Type': 'application/json',
+            ...corsHeaders,
+          },
+        });
+      }
       
       // Handle 404 for unknown endpoints
       return new Response(JSON.stringify({ error: 'Not found' }), {
