@@ -126,36 +126,43 @@ const RestaurantFinder = () => {
       console.log('Session restaurants:', session.restaurants.length)
       
       // Check if any restaurant has votes (upvotes or downvotes)
-      const hasVotedRestaurants = session.restaurants.some(restaurant => {
-        const votes = getAllVotes(restaurant.id)
-        const hasVotes = votes.upvotes > 0 || votes.downvotes > 0
-        console.log(`Restaurant ${restaurant.name} has ${votes.upvotes} upvotes and ${votes.downvotes} downvotes: ${hasVotes ? 'has votes' : 'no votes'}`)
-        return hasVotes
-      })
+      let hasVotedRestaurants = false;
       
-      console.log(`Has restaurants with votes: ${hasVotedRestaurants}`)
+      // First, check if any restaurant has votes
+      for (const restaurant of session.restaurants) {
+        const votes = getAllVotes(restaurant.id);
+        const hasVotes = votes.upvotes > 0 || votes.downvotes > 0;
+        console.log(`Restaurant ${restaurant.name} has ${votes.upvotes} upvotes and ${votes.downvotes} downvotes: ${hasVotes ? 'has votes' : 'no votes'}`);
+        
+        if (hasVotes) {
+          hasVotedRestaurants = true;
+          break;
+        }
+      }
+      
+      console.log(`Has restaurants with votes: ${hasVotedRestaurants}`);
       
       if (hasVotedRestaurants) {
         // Make sure we're using the restaurants from the session
-        const highestVotedRestaurant = findHighestVotedRestaurant(session.restaurants)
+        const highestVotedRestaurant = findHighestVotedRestaurant(session.restaurants);
         
         if (highestVotedRestaurant) {
-          console.log('Setting selected restaurant to highest voted:', highestVotedRestaurant.name)
-          setSelectedRestaurant(highestVotedRestaurant)
-          return
+          console.log('Setting selected restaurant to highest voted:', highestVotedRestaurant.name);
+          setSelectedRestaurant(highestVotedRestaurant);
+          return;
         }
       }
     }
     
-    console.log('No restaurants with votes found, selecting random restaurant')
+    console.log('No restaurants with votes found, selecting random restaurant');
     // Otherwise, get a random restaurant
-    const restaurant = getRandomRestaurant()
+    const restaurant = getRandomRestaurant();
     if (restaurant) {
-      setSelectedRestaurant(restaurant)
+      setSelectedRestaurant(restaurant);
       
       // Add the restaurant to the session if we have one
       if (session) {
-        addRestaurantToSession(restaurant)
+        addRestaurantToSession(restaurant);
       }
     }
   }
