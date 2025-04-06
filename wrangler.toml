@@ -5,8 +5,9 @@ compatibility_flags = ["nodejs_compat"]
 [observability]
 enabled = true
 
-[assets]
-not_found_handling = "single-page-application"
+[site]
+bucket = "./dist"
+entry-point = "workers-site"
 
 # Custom domain configuration
 [[routes]]

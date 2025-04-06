@@ -1,9 +1,0 @@
-{
-  "version": 1,
-  "include": ["/*"],
-  "exclude": [
-    "/assets/*",
-    "/_headers",
-    "/_routes.json"
-  ]
-} 
