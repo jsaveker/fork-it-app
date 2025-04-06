@@ -16,6 +16,5 @@ routes = [
   { pattern = "*.fork-it.cc", custom_domain = true }
 ]
 
-# Environment variables
-[vars]
-VITE_GOOGLE_MAPS_API_KEY = "AIzaSyD_S3UHUBPX6yPY0iPCYWBKAneQD22jdhQ" 
+# Environment variables should be set in the Cloudflare dashboard
+# DO NOT put sensitive keys in this file 
