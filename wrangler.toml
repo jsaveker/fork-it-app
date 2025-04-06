@@ -16,6 +16,10 @@ enabled = true
 
 # Custom domain configuration
 [[routes]]
+pattern = "fork-it.cc"
+custom_domain = true
+
+[[routes]]
 pattern = "api.fork-it.cc"
 custom_domain = true
 

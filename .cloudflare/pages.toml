@@ -1,0 +1,14 @@
+[build]
+command = "npm run build"
+output_directory = "dist/client"
+
+[site]
+bucket = "dist/client"
+
+[env.production]
+workers_dev = true
+route = "fork-it.cc/*"
+zone_id = "your-zone-id"  # Replace with your actual zone ID
+
+[env.production.vars]
+API_URL = "https://api.fork-it.cc" 
