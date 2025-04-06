@@ -53,7 +53,7 @@ export default {
 
     try {
       // Handle different endpoints
-      if (path === '/api/sessions' && request.method === 'POST') {
+      if (path === '/sessions' && request.method === 'POST') {
         // Create a new session
         const body = await request.json();
         const session = createSession(body.name);
@@ -68,7 +68,7 @@ export default {
           },
         });
       } 
-      else if (path === '/api/sessions' && request.method === 'GET') {
+      else if (path === '/sessions' && request.method === 'GET') {
         // Get all sessions (for admin purposes)
         const sessions = [];
         const list = await SESSIONS.list();
@@ -87,9 +87,9 @@ export default {
           },
         });
       }
-      else if (path.startsWith('/api/sessions/') && request.method === 'GET') {
+      else if (path.startsWith('/sessions/') && request.method === 'GET') {
         // Get a specific session by ID
-        const sessionId = path.split('/')[3];
+        const sessionId = path.split('/')[2];
         const sessionData = await SESSIONS.get(sessionId);
         
         if (!sessionData) {
@@ -109,9 +109,9 @@ export default {
           },
         });
       }
-      else if (path.startsWith('/api/sessions/') && request.method === 'PUT') {
+      else if (path.startsWith('/sessions/') && request.method === 'PUT') {
         // Update a session
-        const sessionId = path.split('/')[3];
+        const sessionId = path.split('/')[2];
         const sessionData = await SESSIONS.get(sessionId);
         
         if (!sessionData) {
@@ -145,9 +145,9 @@ export default {
           },
         });
       }
-      else if (path.startsWith('/api/sessions/') && request.method === 'DELETE') {
+      else if (path.startsWith('/sessions/') && request.method === 'DELETE') {
         // Delete a session
-        const sessionId = path.split('/')[3];
+        const sessionId = path.split('/')[2];
         await SESSIONS.delete(sessionId);
         
         return new Response(JSON.stringify({ success: true }), {
@@ -157,7 +157,7 @@ export default {
           },
         });
       }
-      else if (path === '/api/vote' && request.method === 'POST') {
+      else if (path === '/vote' && request.method === 'POST') {
         // Handle voting
         const { sessionId, restaurantId, userId, isUpvote } = await request.json();
         
@@ -219,7 +219,7 @@ export default {
           },
         });
       }
-      else if (path === '/api/add-restaurant' && request.method === 'POST') {
+      else if (path === '/add-restaurant' && request.method === 'POST') {
         // Add a restaurant to a session
         const { sessionId, restaurant } = await request.json();
         
@@ -266,7 +266,7 @@ export default {
         });
       }
       
-      // Handle 404 for unknown endpoints
+      // Return 404 for any other paths
       return new Response(JSON.stringify({ error: 'Not found' }), {
         status: 404,
         headers: {
