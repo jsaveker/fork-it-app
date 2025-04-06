@@ -15,18 +15,24 @@ interface VotingInterfaceProps {
 }
 
 export default function VotingInterface({ restaurant }: VotingInterfaceProps) {
-  const { userId, handleVote, getVotes, getAllVotes } = useVoting()
+  const { userId, handleVote, getVotes, getAllVotes, session } = useVoting()
   const votes = getVotes(restaurant.id)
   const allVotes = getAllVotes(restaurant.id)
 
   const hasUpvoted = votes?.upvotes.includes(userId) || false
   const hasDownvoted = votes?.downvotes.includes(userId) || false
 
+  const handleVoteClick = (isUpvote: boolean) => {
+    console.log(`Voting ${isUpvote ? 'up' : 'down'} on restaurant:`, restaurant.id)
+    console.log('Current session:', session?.id)
+    handleVote(restaurant.id, isUpvote)
+  }
+
   return (
     <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
       <Box sx={{ display: 'flex', alignItems: 'center' }}>
         <IconButton
-          onClick={() => handleVote(restaurant.id, true)}
+          onClick={() => handleVoteClick(true)}
           color={hasUpvoted ? 'primary' : 'default'}
         >
           <ThumbUpIcon />
@@ -38,7 +44,7 @@ export default function VotingInterface({ restaurant }: VotingInterfaceProps) {
 
       <Box sx={{ display: 'flex', alignItems: 'center' }}>
         <IconButton
-          onClick={() => handleVote(restaurant.id, false)}
+          onClick={() => handleVoteClick(false)}
           color={hasDownvoted ? 'primary' : 'default'}
         >
           <ThumbDownIcon />

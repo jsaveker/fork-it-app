@@ -55,6 +55,9 @@ const RestaurantFinder = () => {
     const urlParams = new URLSearchParams(window.location.search)
     const sessionId = urlParams.get('session')
     
+    console.log('Checking for session ID in URL:', sessionId)
+    console.log('Current session:', session?.id)
+    
     if (sessionId && (!session || session.id !== sessionId)) {
       console.log('Loading session from URL:', sessionId)
       loadSessionById(sessionId)
