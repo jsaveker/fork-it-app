@@ -76,7 +76,7 @@ const RestaurantFinder = () => {
     if (restaurants.length === 0) return null
 
     let highestVotedRestaurant = restaurants[0]
-    let highestVoteCount = 0
+    let highestVoteCount = -Infinity // Start with negative infinity to handle all negative vote counts
 
     for (const restaurant of restaurants) {
       const votes = getAllVotes(restaurant.id)
@@ -88,7 +88,8 @@ const RestaurantFinder = () => {
       }
     }
 
-    return highestVoteCount > 0 ? highestVotedRestaurant : null
+    // Always return the restaurant with the highest vote count, even if it's negative
+    return highestVotedRestaurant
   }
 
   const handleRandomRestaurant = () => {
