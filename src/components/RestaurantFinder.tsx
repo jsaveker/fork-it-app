@@ -82,35 +82,39 @@ const RestaurantFinder = () => {
   const findHighestVotedRestaurant = (restaurants: Restaurant[]): Restaurant | null => {
     if (restaurants.length === 0) return null
 
-    let highestVotedRestaurant = restaurants[0]
-    let highestVoteCount = -Infinity // Start with negative infinity to handle all negative vote counts
-
     console.log('Finding highest voted restaurant among:', restaurants.length, 'restaurants')
     
-    // Log all restaurants and their vote counts first
-    console.log('All restaurants and their vote counts:')
+    // Create a map of restaurant IDs to vote counts
+    const restaurantVotes = new Map<string, { restaurant: Restaurant, voteCount: number }>()
+    
+    // Calculate vote counts for all restaurants
     restaurants.forEach(restaurant => {
       const votes = getAllVotes(restaurant.id)
       const voteCount = votes.upvotes - votes.downvotes
+      restaurantVotes.set(restaurant.id, { restaurant, voteCount })
       console.log(`- ${restaurant.name}: ${voteCount} votes (${votes.upvotes} up, ${votes.downvotes} down)`)
     })
     
-    for (const restaurant of restaurants) {
-      const votes = getAllVotes(restaurant.id)
-      const voteCount = votes.upvotes - votes.downvotes
-      
-      console.log(`Checking restaurant: ${restaurant.name}, Votes: ${voteCount} (${votes.upvotes} up, ${votes.downvotes} down)`)
-      
-      if (voteCount > highestVoteCount) {
-        highestVoteCount = voteCount
-        highestVotedRestaurant = restaurant
-        console.log(`New highest voted restaurant: ${restaurant.name} with ${voteCount} votes`)
-      }
-    }
-
-    console.log(`Selected highest voted restaurant: ${highestVotedRestaurant.name} with ${highestVoteCount} votes`)
+    // Find the restaurant with the highest vote count
+    let highestVotedRestaurant: Restaurant | null = null
+    let highestVoteCount = -Infinity
     
-    // Always return the restaurant with the highest vote count, even if it's negative
+    restaurantVotes.forEach((data, id) => {
+      console.log(`Checking restaurant: ${data.restaurant.name}, Votes: ${data.voteCount}`)
+      
+      if (data.voteCount > highestVoteCount) {
+        highestVoteCount = data.voteCount
+        highestVotedRestaurant = data.restaurant
+        console.log(`New highest voted restaurant: ${data.restaurant.name} with ${data.voteCount} votes`)
+      }
+    })
+    
+    if (highestVotedRestaurant) {
+      console.log(`Selected highest voted restaurant: ${highestVotedRestaurant.name} with ${highestVoteCount} votes`)
+    } else {
+      console.log('No restaurant with votes found')
+    }
+    
     return highestVotedRestaurant
   }
 
@@ -124,8 +128,14 @@ const RestaurantFinder = () => {
       // Make sure we're using the restaurants from the session
       const highestVotedRestaurant = findHighestVotedRestaurant(session.restaurants)
       
+      // Check if any restaurant has votes (upvotes or downvotes)
+      const hasVotedRestaurants = session.restaurants.some(restaurant => {
+        const votes = getAllVotes(restaurant.id)
+        return votes.upvotes > 0 || votes.downvotes > 0
+      })
+      
       // If there's a restaurant with votes, select it instead of a random one
-      if (highestVotedRestaurant) {
+      if (hasVotedRestaurants && highestVotedRestaurant) {
         console.log('Setting selected restaurant to highest voted:', highestVotedRestaurant.name)
         setSelectedRestaurant(highestVotedRestaurant)
         return
