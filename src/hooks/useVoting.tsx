@@ -19,6 +19,7 @@ export const useVoting = () => {
     const url = new URL(window.location.href)
     url.searchParams.set('session', sessionId)
     window.history.replaceState({}, '', url.toString())
+    console.log('Updated URL with session ID:', sessionId)
   }
 
   // Function to load a session by ID
@@ -27,11 +28,16 @@ export const useVoting = () => {
     setError(null)
     
     try {
+      console.log('Loading session by ID:', sessionId)
       const loadedSession = await getSession(sessionId)
       if (loadedSession) {
+        console.log('Session loaded successfully:', loadedSession.id)
         setSession(loadedSession)
+        // Make sure the URL is updated with the correct session ID
+        updateUrlWithSessionId(loadedSession.id)
         return loadedSession
       } else {
+        console.log('Session not found:', sessionId)
         setError('Session not found')
         return null
       }
@@ -54,20 +60,25 @@ export const useVoting = () => {
         const urlParams = new URLSearchParams(window.location.search)
         const sessionId = urlParams.get('session')
         
+        console.log('Initial session ID from URL:', sessionId)
+        
         let loadedSession: GroupSession | null = null
         
         if (sessionId) {
           // Try to load the session from the URL parameter
+          console.log('Attempting to load session from URL:', sessionId)
           loadedSession = await getSession(sessionId)
         }
         
         if (!loadedSession) {
           // If no session ID in URL or session not found, create a new one
+          console.log('Creating new session')
           loadedSession = await createSession('Default Session')
           // Update the URL with the new session ID
           updateUrlWithSessionId(loadedSession.id)
         }
         
+        console.log('Setting session:', loadedSession.id)
         setSession(loadedSession)
       } catch (err) {
         console.error('Error loading session:', err)
@@ -84,7 +95,9 @@ export const useVoting = () => {
     if (!session) return
     
     try {
+      console.log(`Voting ${isUpvote ? 'up' : 'down'} on restaurant:`, restaurantId)
       const updatedSession = await voteApi(session.id, restaurantId, userId, isUpvote)
+      console.log('Vote successful, updating session:', updatedSession.id)
       setSession(updatedSession)
     } catch (err) {
       console.error('Error voting:', err)
