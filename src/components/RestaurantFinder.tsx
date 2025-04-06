@@ -78,16 +78,23 @@ const RestaurantFinder = () => {
     let highestVotedRestaurant = restaurants[0]
     let highestVoteCount = -Infinity // Start with negative infinity to handle all negative vote counts
 
+    console.log('Finding highest voted restaurant among:', restaurants.length, 'restaurants')
+    
     for (const restaurant of restaurants) {
       const votes = getAllVotes(restaurant.id)
       const voteCount = votes.upvotes - votes.downvotes
-
+      
+      console.log(`Restaurant: ${restaurant.name}, Votes: ${voteCount} (${votes.upvotes} up, ${votes.downvotes} down)`)
+      
       if (voteCount > highestVoteCount) {
         highestVoteCount = voteCount
         highestVotedRestaurant = restaurant
+        console.log(`New highest voted restaurant: ${restaurant.name} with ${voteCount} votes`)
       }
     }
 
+    console.log(`Selected highest voted restaurant: ${highestVotedRestaurant.name} with ${highestVoteCount} votes`)
+    
     // Always return the restaurant with the highest vote count, even if it's negative
     return highestVotedRestaurant
   }
@@ -95,15 +102,18 @@ const RestaurantFinder = () => {
   const handleRandomRestaurant = () => {
     // If we have a session with restaurants, check if any have votes
     if (session && session.restaurants.length > 0) {
+      console.log('Session has restaurants, checking for votes')
       const highestVotedRestaurant = findHighestVotedRestaurant(session.restaurants)
       
       // If there's a restaurant with votes, select it instead of a random one
       if (highestVotedRestaurant) {
+        console.log('Setting selected restaurant to highest voted:', highestVotedRestaurant.name)
         setSelectedRestaurant(highestVotedRestaurant)
         return
       }
     }
     
+    console.log('No restaurants with votes found, selecting random restaurant')
     // Otherwise, get a random restaurant
     const restaurant = getRandomRestaurant()
     if (restaurant) {
