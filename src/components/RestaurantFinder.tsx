@@ -92,6 +92,18 @@ const RestaurantFinder = () => {
   }
 
   const handleRandomRestaurant = () => {
+    // If we have a session with restaurants, check if any have votes
+    if (session && session.restaurants.length > 0) {
+      const highestVotedRestaurant = findHighestVotedRestaurant(session.restaurants)
+      
+      // If there's a restaurant with votes, select it instead of a random one
+      if (highestVotedRestaurant) {
+        setSelectedRestaurant(highestVotedRestaurant)
+        return
+      }
+    }
+    
+    // Otherwise, get a random restaurant
     const restaurant = getRandomRestaurant()
     if (restaurant) {
       setSelectedRestaurant(restaurant)
