@@ -1,13 +1,10 @@
 name = "forkit"
-compatibility_date = "2024-01-01"
-compatibility_flags = ["nodejs_compat"]
+compatibility_date = "2024-09-23"
+compatibility_flags = ["nodejs_compat_v2"]
 main = "workers/session-api.js"
 
 [observability]
 enabled = true
-
-[site]
-bucket = "./dist"
 
 # Custom domain configuration
 [[routes]]
