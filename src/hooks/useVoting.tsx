@@ -52,6 +52,9 @@ export const useVoting = () => {
 
   useEffect(() => {
     const loadSession = async () => {
+      // Skip if we're already loading or have a session
+      if (loading || session) return
+      
       setLoading(true)
       setError(null)
       
@@ -62,32 +65,29 @@ export const useVoting = () => {
         
         console.log('Initial session ID from URL:', sessionId)
         
-        // Only attempt to load or create a session if we don't have one already
-        if (!session) {
-          let loadedSession: GroupSession | null = null
+        let loadedSession: GroupSession | null = null
+        
+        if (sessionId) {
+          // Try to load the session from the URL parameter
+          console.log('Attempting to load session from URL:', sessionId)
+          loadedSession = await getSession(sessionId)
           
-          if (sessionId) {
-            // Try to load the session from the URL parameter
-            console.log('Attempting to load session from URL:', sessionId)
-            loadedSession = await getSession(sessionId)
-            
-            if (loadedSession) {
-              console.log('Successfully loaded session:', loadedSession.id)
-              setSession(loadedSession)
-              // Only update URL if it's different
-              if (urlParams.get('session') !== loadedSession.id) {
-                updateUrlWithSessionId(loadedSession.id)
-              }
+          if (loadedSession) {
+            console.log('Successfully loaded session:', loadedSession.id)
+            setSession(loadedSession)
+            // Only update URL if it's different
+            if (urlParams.get('session') !== loadedSession.id) {
+              updateUrlWithSessionId(loadedSession.id)
             }
           }
-          
-          if (!loadedSession) {
-            // If no session ID in URL or session not found, create a new one
-            console.log('Creating new session')
-            loadedSession = await createSession('Default Session')
-            setSession(loadedSession)
-            updateUrlWithSessionId(loadedSession.id)
-          }
+        }
+        
+        if (!loadedSession) {
+          // If no session ID in URL or session not found, create a new one
+          console.log('Creating new session')
+          loadedSession = await createSession('Default Session')
+          setSession(loadedSession)
+          updateUrlWithSessionId(loadedSession.id)
         }
       } catch (err) {
         console.error('Error loading session:', err)
