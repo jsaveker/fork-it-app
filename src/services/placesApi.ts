@@ -1,56 +1,67 @@
 import { Restaurant, FilterOptions } from '../types'
 
-// Mock implementation for development
+declare global {
+  interface Window {
+    google: typeof google;
+  }
+}
+
 export const searchNearbyRestaurants = async (
   latitude: number,
   longitude: number,
   filters: FilterOptions
 ): Promise<Restaurant[]> => {
-  // Simulate API delay
-  await new Promise(resolve => setTimeout(resolve, 1000))
-
-  // Generate mock restaurants
-  return generateMockRestaurants(latitude, longitude, filters)
-}
-
-const generateMockRestaurants = (
-  latitude: number,
-  longitude: number,
-  filters: FilterOptions
-): Restaurant[] => {
-  const restaurants: Restaurant[] = []
-  const count = Math.floor(Math.random() * 10) + 5 // 5-15 restaurants
-
-  for (let i = 0; i < count; i++) {
-    const lat = latitude + (Math.random() - 0.5) * 0.01
-    const lng = longitude + (Math.random() - 0.5) * 0.01
-    const rating = Math.random() * 4 + 1
-    const priceLevel = Math.floor(Math.random() * 4) + 1
-    const cuisineTypes = ['Italian', 'Mexican', 'Chinese', 'Japanese', 'Indian', 'Thai', 'American']
-    const randomCuisine = cuisineTypes[Math.floor(Math.random() * cuisineTypes.length)]
-
-    // Apply filters
-    if (rating < filters.rating) continue
-    if (!filters.priceLevel.includes(priceLevel)) continue
-    if (filters.cuisineTypes.length > 0 && !filters.cuisineTypes.includes(randomCuisine)) continue
-
-    restaurants.push({
-      id: `restaurant-${i}`,
-      name: `${randomCuisine} Restaurant ${i + 1}`,
-      vicinity: `${Math.floor(Math.random() * 1000)} Main St`,
-      rating,
-      user_ratings_total: Math.floor(Math.random() * 1000) + 100,
-      price_level: priceLevel,
-      geometry: {
-        location: {
-          lat,
-          lng,
-        },
-      },
-      types: [randomCuisine],
-      photos: [],
-    })
+  // Ensure Google Maps is loaded
+  if (!window.google || !window.google.maps || !window.google.maps.places) {
+    throw new Error('Google Maps JavaScript API not loaded')
   }
 
-  return restaurants
+  const service = new window.google.maps.places.PlacesService(document.createElement('div'))
+  
+  const request: google.maps.places.PlaceSearchRequest = {
+    location: new window.google.maps.LatLng(latitude, longitude),
+    radius: filters.distance * 1609.34, // Convert miles to meters
+    type: 'restaurant',
+    keyword: filters.cuisineTypes.length > 0 ? filters.cuisineTypes.join(' ') : undefined,
+    minPriceLevel: Math.min(...filters.priceLevel),
+    maxPriceLevel: Math.max(...filters.priceLevel),
+  }
+
+  return new Promise((resolve, reject) => {
+    service.nearbySearch(request, (results, status) => {
+      if (status === window.google.maps.places.PlacesServiceStatus.OK && results) {
+        // Filter results based on rating
+        const filteredResults = results.filter(place => 
+          (place.rating || 0) >= filters.rating
+        )
+
+        // Convert to our Restaurant type
+        const restaurants: Restaurant[] = filteredResults.map(place => ({
+          id: place.place_id || '',
+          name: place.name || '',
+          vicinity: place.vicinity || '',
+          rating: place.rating || 0,
+          user_ratings_total: place.user_ratings_total || 0,
+          price_level: place.price_level || 0,
+          geometry: {
+            location: {
+              lat: place.geometry?.location?.lat() || 0,
+              lng: place.geometry?.location?.lng() || 0,
+            },
+          },
+          types: place.types || [],
+          photos: place.photos?.map(photo => ({
+            height: photo.height,
+            width: photo.width,
+            html_attributions: photo.html_attributions,
+            photo_reference: photo.getUrl(),
+          })) || [],
+        }))
+
+        resolve(restaurants)
+      } else {
+        reject(new Error(`Places API error: ${status}`))
+      }
+    })
+  })
 } 
