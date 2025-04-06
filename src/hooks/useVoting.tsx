@@ -65,11 +65,25 @@ export const useVoting = () => {
     return session.votes.find(v => v.restaurantId === restaurantId) || null
   }
 
+  // Function to get all votes for a restaurant, regardless of user
+  const getAllVotes = (restaurantId: string) => {
+    if (!session) return { upvotes: 0, downvotes: 0 }
+    
+    const vote = session.votes.find(v => v.restaurantId === restaurantId)
+    if (!vote) return { upvotes: 0, downvotes: 0 }
+    
+    return {
+      upvotes: vote.upvotes.length,
+      downvotes: vote.downvotes.length
+    }
+  }
+
   return {
     session,
     userId,
     handleVote,
     getVotes,
+    getAllVotes,
     loading,
     error
   }

@@ -6,14 +6,43 @@ declare global {
   }
 }
 
+// Function to wait for Google Maps API to load
+const waitForGoogleMaps = (): Promise<void> => {
+  return new Promise((resolve, reject) => {
+    // If Google Maps is already loaded, resolve immediately
+    if (window.google && window.google.maps && window.google.maps.places) {
+      resolve();
+      return;
+    }
+
+    // Set a timeout to reject if the API doesn't load within 10 seconds
+    const timeout = setTimeout(() => {
+      reject(new Error('Google Maps API failed to load within 10 seconds'));
+    }, 10000);
+
+    // Function to check if Google Maps is loaded
+    const checkGoogleMaps = () => {
+      if (window.google && window.google.maps && window.google.maps.places) {
+        clearTimeout(timeout);
+        resolve();
+      } else {
+        // Check again in 100ms
+        setTimeout(checkGoogleMaps, 100);
+      }
+    };
+
+    // Start checking
+    checkGoogleMaps();
+  });
+};
+
 export const searchNearbyRestaurants = async (
   latitude: number,
   longitude: number,
   filters: FilterOptions
 ): Promise<Restaurant[]> => {
-  if (!window.google || !window.google.maps || !window.google.maps.places) {
-    throw new Error('Google Maps Places API not loaded')
-  }
+  // Wait for Google Maps API to load
+  await waitForGoogleMaps();
 
   // Convert miles to meters for the Google API
   const radiusInMeters = filters.distance * 1609.34

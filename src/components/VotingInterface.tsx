@@ -15,8 +15,9 @@ interface VotingInterfaceProps {
 }
 
 export default function VotingInterface({ restaurant }: VotingInterfaceProps) {
-  const { userId, handleVote, getVotes } = useVoting()
+  const { userId, handleVote, getVotes, getAllVotes } = useVoting()
   const votes = getVotes(restaurant.id)
+  const allVotes = getAllVotes(restaurant.id)
 
   const hasUpvoted = votes?.upvotes.includes(userId) || false
   const hasDownvoted = votes?.downvotes.includes(userId) || false
@@ -28,7 +29,7 @@ export default function VotingInterface({ restaurant }: VotingInterfaceProps) {
           onClick={() => handleVote(restaurant.id, true)}
           color={hasUpvoted ? 'primary' : 'default'}
         >
-          <Badge badgeContent={votes?.upvotes.length || 0} color="primary">
+          <Badge badgeContent={allVotes.upvotes} color="primary">
             <ThumbUpIcon />
           </Badge>
         </IconButton>
@@ -39,7 +40,7 @@ export default function VotingInterface({ restaurant }: VotingInterfaceProps) {
           onClick={() => handleVote(restaurant.id, false)}
           color={hasDownvoted ? 'primary' : 'default'}
         >
-          <Badge badgeContent={votes?.downvotes.length || 0} color="error">
+          <Badge badgeContent={allVotes.downvotes} color="error">
             <ThumbDownIcon />
           </Badge>
         </IconButton>
