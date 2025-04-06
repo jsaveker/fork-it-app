@@ -74,7 +74,10 @@ export const useVoting = () => {
             if (loadedSession) {
               console.log('Successfully loaded session:', loadedSession.id)
               setSession(loadedSession)
-              updateUrlWithSessionId(loadedSession.id)
+              // Only update URL if it's different
+              if (urlParams.get('session') !== loadedSession.id) {
+                updateUrlWithSessionId(loadedSession.id)
+              }
             }
           }
           
@@ -82,9 +85,8 @@ export const useVoting = () => {
             // If no session ID in URL or session not found, create a new one
             console.log('Creating new session')
             loadedSession = await createSession('Default Session')
-            // Update the URL with the new session ID
-            updateUrlWithSessionId(loadedSession.id)
             setSession(loadedSession)
+            updateUrlWithSessionId(loadedSession.id)
           }
         }
       } catch (err) {
