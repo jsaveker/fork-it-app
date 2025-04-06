@@ -1,7 +1,7 @@
 import { GroupSession, Restaurant } from '../types'
 
 // Base URL for the API
-const API_BASE_URL = 'https://forkit.james-3e3.workers.dev/api'
+const API_BASE_URL = 'https://fork-it.cc/api'
 
 /**
  * Create a new session
