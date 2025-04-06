@@ -34,7 +34,7 @@ const RestaurantFinder = () => {
     updateFilters,
   } = useRestaurants()
   
-  const { session, loading: sessionLoading, error: sessionError, loadSessionById, getAllVotes } = useVoting()
+  const { session, error: sessionError, loadSessionById, getAllVotes } = useVoting()
   const [addingRestaurant, setAddingRestaurant] = useState(false)
   const [addError, setAddError] = useState<string | null>(null)
   const [showCopyMessage, setShowCopyMessage] = useState(false)
