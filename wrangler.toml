@@ -8,4 +8,14 @@ enabled = true
 upload_source_maps = true
 
 [assets]
-not_found_handling = "single-page-application" 
+not_found_handling = "single-page-application"
+
+# Custom domain configuration
+routes = [
+  { pattern = "fork-it.cc", custom_domain = true },
+  { pattern = "*.fork-it.cc", custom_domain = true }
+]
+
+# Environment variables
+[vars]
+VITE_GOOGLE_MAPS_API_KEY = "AIzaSyD_S3UHUBPX6yPY0iPCYWBKAneQD22jdhQ" 

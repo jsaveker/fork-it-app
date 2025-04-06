@@ -16,7 +16,14 @@ export const searchNearbyRestaurants = async (
     throw new Error('Google Maps JavaScript API not loaded')
   }
 
-  const service = new window.google.maps.places.PlacesService(document.createElement('div'))
+  // Create a map element for the Places service
+  const mapElement = document.createElement('div')
+  const map = new window.google.maps.Map(mapElement, {
+    center: { lat: latitude, lng: longitude },
+    zoom: 15,
+  })
+  
+  const service = new window.google.maps.places.PlacesService(map)
   
   const request: google.maps.places.PlaceSearchRequest = {
     location: new window.google.maps.LatLng(latitude, longitude),
