@@ -7,25 +7,35 @@ const API_BASE_URL = 'https://api.fork-it.cc'
  * Create a new session
  */
 export const createSession = async (name: string): Promise<GroupSession> => {
-  const response = await fetch(`${API_BASE_URL}/sessions`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({ name }),
-  })
+  console.log('Creating new session with name:', name)
+  try {
+    const response = await fetch(`${API_BASE_URL}/sessions`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ name }),
+    })
 
-  if (!response.ok) {
-    throw new Error('Failed to create session')
+    if (!response.ok) {
+      console.error('Failed to create session:', response.status, response.statusText)
+      throw new Error('Failed to create session')
+    }
+
+    const session = await response.json()
+    console.log('Session created successfully:', session.id)
+    return session
+  } catch (error) {
+    console.error('Error creating session:', error)
+    throw error
   }
-
-  return response.json()
 }
 
 /**
  * Get a session by ID
  */
 export const getSession = async (sessionId: string): Promise<GroupSession | null> => {
+  console.log('Getting session by ID:', sessionId)
   try {
     const response = await fetch(`${API_BASE_URL}/sessions/${sessionId}`, {
       method: 'GET',
@@ -36,12 +46,16 @@ export const getSession = async (sessionId: string): Promise<GroupSession | null
 
     if (!response.ok) {
       if (response.status === 404) {
+        console.log('Session not found:', sessionId)
         return null
       }
+      console.error('Failed to get session:', response.status, response.statusText)
       throw new Error('Failed to get session')
     }
 
-    return response.json()
+    const session = await response.json()
+    console.log('Session retrieved successfully:', session.id)
+    return session
   } catch (error) {
     console.error('Error getting session:', error)
     return null

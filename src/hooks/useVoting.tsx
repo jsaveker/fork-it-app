@@ -68,6 +68,7 @@ export const useVoting = () => {
           if (loadedSession) {
             console.log('Successfully loaded session:', loadedSession.id)
             setSession(loadedSession)
+            updateUrlWithSessionId(loadedSession.id)
           } else {
             console.log('Session not found, creating new one')
             loadedSession = await createSession('Default Session')
