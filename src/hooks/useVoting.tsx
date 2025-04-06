@@ -23,12 +23,15 @@ export const useVoting = () => {
       const loadedSession = await getSession(sessionId)
       if (loadedSession) {
         setSession(loadedSession)
+        return loadedSession
       } else {
         setError('Session not found')
+        return null
       }
     } catch (err) {
       console.error('Error loading session:', err)
       setError('Failed to load session')
+      return null
     } finally {
       setLoading(false)
     }

@@ -74,9 +74,9 @@ export default function FilterPanel({ filters, onChange }: FilterPanelProps) {
         valueLabelFormat={(value) => `${value} stars`}
       />
 
-      <Typography gutterBottom>Price Level</Typography>
+      <Typography gutterBottom>Minimum Price Level</Typography>
       <Slider
-        value={filters.priceLevel}
+        value={filters.priceLevel.length > 0 ? Math.min(...filters.priceLevel) : 1}
         min={1}
         max={4}
         step={1}
@@ -86,7 +86,15 @@ export default function FilterPanel({ filters, onChange }: FilterPanelProps) {
           { value: 3, label: '$$$' },
           { value: 4, label: '$$$$' }
         ]}
-        onChange={(_, value) => onChange({ priceLevel: Array.isArray(value) ? value : [value] })}
+        onChange={(_, value) => {
+          const minPrice = value as number;
+          // Create a range from minPrice to 4
+          const priceRange = Array.from(
+            { length: 5 - minPrice }, 
+            (_, i) => minPrice + i
+          );
+          onChange({ priceLevel: priceRange });
+        }}
         valueLabelDisplay="on"
         valueLabelFormat={(value) => PRICE_LABELS[value as keyof typeof PRICE_LABELS] || ''}
       />
