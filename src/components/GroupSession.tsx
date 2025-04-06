@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import {
   Box,
   Typography,
@@ -17,11 +17,24 @@ import { useVoting } from '../hooks/useVoting'
 export default function GroupSession() {
   const { session, getSessionUrl } = useVoting()
   const [showCopied, setShowCopied] = useState(false)
+  const [isVisible, setIsVisible] = useState(false)
 
   console.log('GroupSession component, session:', session?.id)
 
-  if (!session) {
-    console.log('No session available, not rendering GroupSession')
+  // Add a small delay to ensure the session is properly loaded
+  useEffect(() => {
+    if (session) {
+      const timer = setTimeout(() => {
+        setIsVisible(true)
+      }, 500)
+      return () => clearTimeout(timer)
+    } else {
+      setIsVisible(false)
+    }
+  }, [session])
+
+  if (!session || !isVisible) {
+    console.log('No session available or not visible yet, not rendering GroupSession')
     return null
   }
 

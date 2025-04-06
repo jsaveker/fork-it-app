@@ -120,16 +120,36 @@ export const useVoting = () => {
   }, [session])
 
   const handleVote = async (restaurantId: string, isUpvote: boolean) => {
-    if (!session) {
-      console.log('No session available, creating new one')
-      await createNewSession()
+    try {
+      // If no session exists, create one first
       if (!session) {
-        console.error('Failed to create session for voting')
+        console.log('No session available, creating new one')
+        const newSession = await createSession('Default Session')
+        console.log('New session created:', newSession.id)
+        
+        // Update the session state
+        setSession(newSession)
+        
+        // Update the URL with the new session ID
+        updateUrlWithSessionId(newSession.id)
+        
+        // Now use the newly created session for voting
+        console.log(`Voting ${isUpvote ? 'up' : 'down'} on restaurant:`, restaurantId)
+        console.log('Using newly created session ID:', newSession.id)
+        const updatedSession = await voteApi(newSession.id, restaurantId, userId, isUpvote)
+        console.log('Vote successful, updating session:', updatedSession.id)
+        
+        // Log the updated vote counts
+        const updatedVote = updatedSession.votes.find(v => v.restaurantId === restaurantId)
+        if (updatedVote) {
+          console.log(`Updated votes for restaurant ${restaurantId}: ${updatedVote.upvotes.length} upvotes, ${updatedVote.downvotes.length} downvotes`)
+        }
+        
+        setSession(updatedSession)
         return
       }
-    }
-    
-    try {
+      
+      // If we already have a session, just vote
       console.log(`Voting ${isUpvote ? 'up' : 'down'} on restaurant:`, restaurantId)
       console.log('Using session ID:', session.id)
       const updatedSession = await voteApi(session.id, restaurantId, userId, isUpvote)
