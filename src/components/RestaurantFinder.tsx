@@ -35,7 +35,7 @@ const RestaurantFinder = () => {
     updateFilters,
   } = useRestaurants()
   
-  const { session, error: sessionError, loadSessionById, getAllVotes } = useVoting()
+  const { session, error: sessionError, loadSessionById, getAllVotes, setSession } = useVoting()
   const [addingRestaurant, setAddingRestaurant] = useState(false)
   const [addError, setAddError] = useState<string | null>(null)
   const [showCopyMessage, setShowCopyMessage] = useState(false)
@@ -151,7 +151,12 @@ const RestaurantFinder = () => {
     setAddError(null)
     
     try {
-      await addRestaurant(session.id, restaurant)
+      console.log('Adding restaurant to session:', restaurant.name)
+      const updatedSession = await addRestaurant(session.id, restaurant)
+      console.log('Restaurant added to session:', updatedSession.id)
+      
+      // Update the session state with the updated session
+      setSession(updatedSession)
     } catch (err) {
       console.error('Error adding restaurant to session:', err)
       setAddError('Failed to add restaurant to session')
