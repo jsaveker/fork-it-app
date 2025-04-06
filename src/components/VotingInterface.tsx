@@ -25,6 +25,11 @@ export default function VotingInterface({ restaurant }: VotingInterfaceProps) {
   const handleVoteClick = (isUpvote: boolean) => {
     console.log(`Voting ${isUpvote ? 'up' : 'down'} on restaurant:`, restaurant.id)
     console.log('Current session:', session?.id)
+    
+    if (!session) {
+      console.log('No session available, voting will create a new session')
+    }
+    
     handleVote(restaurant.id, isUpvote)
   }
 

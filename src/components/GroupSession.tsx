@@ -18,7 +18,10 @@ export default function GroupSession() {
   const { session, getSessionUrl } = useVoting()
   const [showCopied, setShowCopied] = useState(false)
 
+  console.log('GroupSession component, session:', session?.id)
+
   if (!session) {
+    console.log('No session available, not rendering GroupSession')
     return null
   }
 

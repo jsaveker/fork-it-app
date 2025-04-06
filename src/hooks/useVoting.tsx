@@ -28,16 +28,41 @@ export const useVoting = () => {
     setError(null)
     
     try {
+      console.log('Loading session by ID:', sessionId)
       const loadedSession = await getSession(sessionId)
       if (loadedSession) {
+        console.log('Session loaded successfully:', loadedSession.id)
         setSession(loadedSession)
         updateUrlWithSessionId(loadedSession.id)
       } else {
-        setError('Session not found')
+        console.log('Session not found, creating new one')
+        const newSession = await createSession('Default Session')
+        console.log('New session created:', newSession.id)
+        setSession(newSession)
+        updateUrlWithSessionId(newSession.id)
       }
     } catch (err) {
       console.error('Error loading session:', err)
       setError('Failed to load session')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  // Create a new session
+  const createNewSession = async () => {
+    setLoading(true)
+    setError(null)
+    
+    try {
+      console.log('Creating new session')
+      const newSession = await createSession('Default Session')
+      console.log('New session created:', newSession.id)
+      setSession(newSession)
+      updateUrlWithSessionId(newSession.id)
+    } catch (err) {
+      console.error('Error creating session:', err)
+      setError('Failed to create session')
     } finally {
       setLoading(false)
     }
@@ -58,12 +83,10 @@ export const useVoting = () => {
         
         console.log('Initial session ID from URL:', sessionId)
         
-        let loadedSession: GroupSession | null = null
-        
         if (sessionId) {
           // Try to load the session from the URL parameter
           console.log('Attempting to load session from URL:', sessionId)
-          loadedSession = await getSession(sessionId)
+          const loadedSession = await getSession(sessionId)
           
           if (loadedSession) {
             console.log('Successfully loaded session:', loadedSession.id)
@@ -71,16 +94,12 @@ export const useVoting = () => {
             updateUrlWithSessionId(loadedSession.id)
           } else {
             console.log('Session not found, creating new one')
-            loadedSession = await createSession('Default Session')
-            setSession(loadedSession)
-            updateUrlWithSessionId(loadedSession.id)
+            await createNewSession()
           }
         } else {
           // If no session ID in URL, create a new one
           console.log('No session ID in URL, creating new session')
-          loadedSession = await createSession('Default Session')
-          setSession(loadedSession)
-          updateUrlWithSessionId(loadedSession.id)
+          await createNewSession()
         }
       } catch (err) {
         console.error('Error loading session:', err)
@@ -101,10 +120,18 @@ export const useVoting = () => {
   }, [session])
 
   const handleVote = async (restaurantId: string, isUpvote: boolean) => {
-    if (!session) return
+    if (!session) {
+      console.log('No session available, creating new one')
+      await createNewSession()
+      if (!session) {
+        console.error('Failed to create session for voting')
+        return
+      }
+    }
     
     try {
       console.log(`Voting ${isUpvote ? 'up' : 'down'} on restaurant:`, restaurantId)
+      console.log('Using session ID:', session.id)
       const updatedSession = await voteApi(session.id, restaurantId, userId, isUpvote)
       console.log('Vote successful, updating session:', updatedSession.id)
       
