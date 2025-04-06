@@ -19,6 +19,10 @@ enabled = true
 pattern = "fork-it.cc"
 custom_domain = true
 
+[[routes]]
+pattern = "fork-it.cc/api/*"
+custom_domain = true
+
 # KV namespace for storing sessions
 [[kv_namespaces]]
 binding = "SESSIONS_KV"
