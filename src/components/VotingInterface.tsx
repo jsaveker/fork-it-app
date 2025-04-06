@@ -31,7 +31,7 @@ export default function VotingInterface({ restaurant }: VotingInterfaceProps) {
         >
           <ThumbUpIcon />
         </IconButton>
-        <Typography variant="body2" sx={{ ml: 1 }}>
+        <Typography variant="body2" sx={{ ml: 1, minWidth: '20px', textAlign: 'center' }}>
           {allVotes.upvotes}
         </Typography>
       </Box>
@@ -43,7 +43,7 @@ export default function VotingInterface({ restaurant }: VotingInterfaceProps) {
         >
           <ThumbDownIcon />
         </IconButton>
-        <Typography variant="body2" sx={{ ml: 1 }}>
+        <Typography variant="body2" sx={{ ml: 1, minWidth: '20px', textAlign: 'center' }}>
           {allVotes.downvotes}
         </Typography>
       </Box>

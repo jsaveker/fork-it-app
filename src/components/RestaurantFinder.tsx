@@ -33,7 +33,7 @@ const RestaurantFinder = () => {
     updateFilters,
   } = useRestaurants()
   
-  const { session, loading: sessionLoading, error: sessionError } = useVoting()
+  const { session, loading: sessionLoading, error: sessionError, loadSessionById } = useVoting()
   const [addingRestaurant, setAddingRestaurant] = useState(false)
   const [addError, setAddError] = useState<string | null>(null)
 
@@ -45,6 +45,20 @@ const RestaurantFinder = () => {
       findRestaurants()
     }
   }, [location])
+
+  // Check for session ID in URL and load session if needed
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search)
+    const sessionId = urlParams.get('session')
+    
+    if (sessionId && session) {
+      // If we have a session ID in the URL and a different session loaded,
+      // load the session from the URL
+      if (session.id !== sessionId) {
+        loadSessionById(sessionId)
+      }
+    }
+  }, [session])
 
   const handleRandomRestaurant = () => {
     const restaurant = getRandomRestaurant()
