@@ -98,6 +98,13 @@ export const useVoting = () => {
       console.log(`Voting ${isUpvote ? 'up' : 'down'} on restaurant:`, restaurantId)
       const updatedSession = await voteApi(session.id, restaurantId, userId, isUpvote)
       console.log('Vote successful, updating session:', updatedSession.id)
+      
+      // Log the updated vote counts
+      const updatedVote = updatedSession.votes.find(v => v.restaurantId === restaurantId)
+      if (updatedVote) {
+        console.log(`Updated votes for restaurant ${restaurantId}: ${updatedVote.upvotes.length} upvotes, ${updatedVote.downvotes.length} downvotes`)
+      }
+      
       setSession(updatedSession)
     } catch (err) {
       console.error('Error voting:', err)
@@ -117,9 +124,14 @@ export const useVoting = () => {
     const vote = session.votes.find(v => v.restaurantId === restaurantId)
     if (!vote) return { upvotes: 0, downvotes: 0 }
     
+    const upvotes = vote.upvotes.length
+    const downvotes = vote.downvotes.length
+    
+    console.log(`Votes for restaurant ${restaurantId}: ${upvotes} upvotes, ${downvotes} downvotes`)
+    
     return {
-      upvotes: vote.upvotes.length,
-      downvotes: vote.downvotes.length
+      upvotes,
+      downvotes
     }
   }
 
