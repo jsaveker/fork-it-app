@@ -14,6 +14,26 @@ export const useVoting = () => {
     return newId
   })
 
+  // Function to load a session by ID
+  const loadSessionById = async (sessionId: string) => {
+    setLoading(true)
+    setError(null)
+    
+    try {
+      const loadedSession = await getSession(sessionId)
+      if (loadedSession) {
+        setSession(loadedSession)
+      } else {
+        setError('Session not found')
+      }
+    } catch (err) {
+      console.error('Error loading session:', err)
+      setError('Failed to load session')
+    } finally {
+      setLoading(false)
+    }
+  }
+
   useEffect(() => {
     const loadSession = async () => {
       setLoading(true)
@@ -84,6 +104,7 @@ export const useVoting = () => {
     handleVote,
     getVotes,
     getAllVotes,
+    loadSessionById,
     loading,
     error
   }
