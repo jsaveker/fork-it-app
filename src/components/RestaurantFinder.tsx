@@ -19,6 +19,7 @@ import { useRestaurants } from '../hooks/useRestaurants'
 import { useVoting } from '../hooks/useVoting'
 import { addRestaurant } from '../services/sessionApi'
 import { FilterOptions, Restaurant } from '../types'
+import GroupSession from './GroupSession'
 
 const RestaurantFinder = () => {
   const { location, loading: locationLoading, error: locationError } = useLocation()
@@ -34,7 +35,7 @@ const RestaurantFinder = () => {
     updateFilters,
   } = useRestaurants()
   
-  const { session, error: sessionError, loadSessionById, getAllVotes } = useVoting()
+  const { session, error: sessionError, loadSessionById, getAllVotes, handleVote } = useVoting()
   const [addingRestaurant, setAddingRestaurant] = useState(false)
   const [addError, setAddError] = useState<string | null>(null)
   const [showCopyMessage, setShowCopyMessage] = useState(false)
@@ -54,15 +55,11 @@ const RestaurantFinder = () => {
     const urlParams = new URLSearchParams(window.location.search)
     const sessionId = urlParams.get('session')
     
-    if (sessionId) {
-      // If we have a session ID in the URL and either no session loaded or a different session,
-      // load the session from the URL
-      if (!session || session.id !== sessionId) {
-        console.log('Loading session from URL:', sessionId)
-        loadSessionById(sessionId)
-      }
+    if (sessionId && (!session || session.id !== sessionId)) {
+      console.log('Loading session from URL:', sessionId)
+      loadSessionById(sessionId)
     }
-  }, [session])
+  }, [session, loadSessionById])
 
   // Select the highest-voted restaurant when the session changes
   useEffect(() => {
@@ -193,6 +190,7 @@ const RestaurantFinder = () => {
 
   return (
     <Container maxWidth="lg" sx={{ py: 4 }}>
+      <GroupSession />
       <Box sx={{ mb: 4, display: 'flex', justifyContent: 'center', flexDirection: 'column', alignItems: 'center' }}>
         <motion.div
           whileHover={{ scale: 1.05 }}
