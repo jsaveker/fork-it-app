@@ -125,20 +125,25 @@ const RestaurantFinder = () => {
       console.log('Session ID:', session.id)
       console.log('Session restaurants:', session.restaurants.length)
       
-      // Make sure we're using the restaurants from the session
-      const highestVotedRestaurant = findHighestVotedRestaurant(session.restaurants)
-      
       // Check if any restaurant has votes (upvotes or downvotes)
       const hasVotedRestaurants = session.restaurants.some(restaurant => {
         const votes = getAllVotes(restaurant.id)
-        return votes.upvotes > 0 || votes.downvotes > 0
+        const hasVotes = votes.upvotes > 0 || votes.downvotes > 0
+        console.log(`Restaurant ${restaurant.name} has ${votes.upvotes} upvotes and ${votes.downvotes} downvotes: ${hasVotes ? 'has votes' : 'no votes'}`)
+        return hasVotes
       })
       
-      // If there's a restaurant with votes, select it instead of a random one
-      if (hasVotedRestaurants && highestVotedRestaurant) {
-        console.log('Setting selected restaurant to highest voted:', highestVotedRestaurant.name)
-        setSelectedRestaurant(highestVotedRestaurant)
-        return
+      console.log(`Has restaurants with votes: ${hasVotedRestaurants}`)
+      
+      if (hasVotedRestaurants) {
+        // Make sure we're using the restaurants from the session
+        const highestVotedRestaurant = findHighestVotedRestaurant(session.restaurants)
+        
+        if (highestVotedRestaurant) {
+          console.log('Setting selected restaurant to highest voted:', highestVotedRestaurant.name)
+          setSelectedRestaurant(highestVotedRestaurant)
+          return
+        }
       }
     }
     
