@@ -14,5 +14,11 @@ entry-point = "workers-site"
 pattern = "fork-it.cc"
 custom_domain = true
 
+# KV namespace for storing sessions
+[[kv_namespaces]]
+binding = "SESSIONS_KV"
+id = "your-kv-namespace-id" # Replace with your actual KV namespace ID
+preview_id = "your-preview-kv-namespace-id" # Replace with your actual preview KV namespace ID
+
 # Environment variables should be set in the Cloudflare dashboard
 # DO NOT put sensitive keys in this file 

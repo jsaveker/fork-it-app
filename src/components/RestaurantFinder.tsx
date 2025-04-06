@@ -5,6 +5,8 @@ import {
   Grid,
   Button,
   Typography,
+  CircularProgress,
+  Alert,
 } from '@mui/material'
 import { motion, AnimatePresence } from 'framer-motion'
 import RestaurantCard from './RestaurantCard'
@@ -13,6 +15,8 @@ import LoadingSpinner from './LoadingSpinner'
 import ErrorDisplay from './ErrorDisplay'
 import { useLocation } from '../hooks/useLocation'
 import { useRestaurants } from '../hooks/useRestaurants'
+import { useVoting } from '../hooks/useVoting'
+import { addRestaurant } from '../services/sessionApi'
 import { FilterOptions } from '../types'
 
 const RestaurantFinder = () => {
@@ -28,6 +32,10 @@ const RestaurantFinder = () => {
     setSelectedRestaurant,
     updateFilters,
   } = useRestaurants()
+  
+  const { session, loading: sessionLoading, error: sessionError } = useVoting()
+  const [addingRestaurant, setAddingRestaurant] = useState(false)
+  const [addError, setAddError] = useState<string | null>(null)
 
   const [showFilters, setShowFilters] = useState(false)
 
@@ -42,6 +50,27 @@ const RestaurantFinder = () => {
     const restaurant = getRandomRestaurant()
     if (restaurant) {
       setSelectedRestaurant(restaurant)
+      
+      // Add the restaurant to the session if we have one
+      if (session) {
+        addRestaurantToSession(restaurant)
+      }
+    }
+  }
+  
+  const addRestaurantToSession = async (restaurant: any) => {
+    if (!session) return
+    
+    setAddingRestaurant(true)
+    setAddError(null)
+    
+    try {
+      await addRestaurant(session.id, restaurant)
+    } catch (err) {
+      console.error('Error adding restaurant to session:', err)
+      setAddError('Failed to add restaurant to session')
+    } finally {
+      setAddingRestaurant(false)
     }
   }
 
@@ -50,14 +79,14 @@ const RestaurantFinder = () => {
     findRestaurants(newFilters)
   }
 
-  if (locationLoading || restaurantsLoading) {
+  if (locationLoading || restaurantsLoading || sessionLoading) {
     return <LoadingSpinner message="Finding restaurants near you..." />
   }
 
-  if (locationError || restaurantsError) {
+  if (locationError || restaurantsError || sessionError) {
     return (
       <ErrorDisplay
-        message={locationError || restaurantsError || 'An error occurred'}
+        message={locationError || restaurantsError || sessionError || 'An error occurred'}
         onRetry={() => window.location.reload()}
       />
     )
@@ -74,7 +103,7 @@ const RestaurantFinder = () => {
             variant="contained"
             size="large"
             onClick={handleRandomRestaurant}
-            disabled={restaurants.length === 0}
+            disabled={restaurants.length === 0 || addingRestaurant}
             sx={{
               py: 2,
               px: 4,
@@ -82,10 +111,20 @@ const RestaurantFinder = () => {
               borderRadius: 3,
             }}
           >
-            Find Random Restaurant
+            {addingRestaurant ? (
+              <CircularProgress size={24} color="inherit" />
+            ) : (
+              'Find Random Restaurant'
+            )}
           </Button>
         </motion.div>
       </Box>
+      
+      {addError && (
+        <Alert severity="error" sx={{ mb: 2 }}>
+          {addError}
+        </Alert>
+      )}
 
       <Box sx={{ mb: 4 }}>
         <Button
