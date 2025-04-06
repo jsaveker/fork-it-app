@@ -28,23 +28,16 @@ export const useVoting = () => {
     setError(null)
     
     try {
-      console.log('Loading session by ID:', sessionId)
       const loadedSession = await getSession(sessionId)
       if (loadedSession) {
-        console.log('Session loaded successfully:', loadedSession.id)
         setSession(loadedSession)
-        // Make sure the URL is updated with the correct session ID
         updateUrlWithSessionId(loadedSession.id)
-        return loadedSession
       } else {
-        console.log('Session not found:', sessionId)
         setError('Session not found')
-        return null
       }
     } catch (err) {
       console.error('Error loading session:', err)
       setError('Failed to load session')
-      return null
     } finally {
       setLoading(false)
     }
