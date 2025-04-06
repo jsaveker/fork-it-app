@@ -41,13 +41,22 @@ export const useVoting = () => {
       const loadedSession = await getSession(sessionId)
       if (loadedSession) {
         console.log('Session loaded successfully:', loadedSession.id)
-        setSession(loadedSession)
-        // Only update the URL if it's different from the current one
-        const urlParams = new URLSearchParams(window.location.search)
-        const currentSessionId = urlParams.get('session')
-        if (currentSessionId !== loadedSession.id) {
-          updateUrlWithSessionId(loadedSession.id)
+        
+        // If the server returned a different session ID, preserve the original one
+        if (loadedSession.id !== sessionId) {
+          console.log('Server returned different session ID, preserving original:', sessionId)
+          // Create a new session object with the original ID but updated data
+          const preservedSession = {
+            ...loadedSession,
+            id: sessionId
+          }
+          setSession(preservedSession)
+        } else {
+          // If the session ID is the same, just update the session
+          setSession(loadedSession)
         }
+        
+        // Don't update the URL here - we want to keep the same session ID
       } else {
         console.log('Session not found, creating new one')
         const newSession = await createSession('Default Session')
@@ -104,12 +113,22 @@ export const useVoting = () => {
           
           if (loadedSession) {
             console.log('Successfully loaded session:', loadedSession.id)
-            setSession(loadedSession)
-            // Only update the URL if it's different from the current one
+            
+            // If the server returned a different session ID, preserve the original one
             if (loadedSession.id !== sessionId) {
-              console.log('Session ID from server differs from URL, updating URL')
-              updateUrlWithSessionId(loadedSession.id)
+              console.log('Server returned different session ID, preserving original:', sessionId)
+              // Create a new session object with the original ID but updated data
+              const preservedSession = {
+                ...loadedSession,
+                id: sessionId
+              }
+              setSession(preservedSession)
+            } else {
+              // If the session ID is the same, just update the session
+              setSession(loadedSession)
             }
+            
+            // Don't update the URL here - we want to keep the same session ID
           } else {
             console.log('Session not found, creating new one')
             await createNewSession()
@@ -167,11 +186,15 @@ export const useVoting = () => {
         return
       }
       
+      // Store the original session ID
+      const originalSessionId = session.id
+      console.log('Original session ID:', originalSessionId)
+      
       // If we already have a session, just vote
       console.log(`Voting ${isUpvote ? 'up' : 'down'} on restaurant:`, restaurantId)
-      console.log('Using session ID:', session.id)
-      const updatedSession = await voteApi(session.id, restaurantId, userId, isUpvote)
-      console.log('Vote successful, updating session:', updatedSession.id)
+      console.log('Using session ID:', originalSessionId)
+      const updatedSession = await voteApi(originalSessionId, restaurantId, userId, isUpvote)
+      console.log('Vote successful, server returned session ID:', updatedSession.id)
       
       // Log the updated vote counts
       const updatedVote = updatedSession.votes.find(v => v.restaurantId === restaurantId)
@@ -179,11 +202,21 @@ export const useVoting = () => {
         console.log(`Updated votes for restaurant ${restaurantId}: ${updatedVote.upvotes.length} upvotes, ${updatedVote.downvotes.length} downvotes`)
       }
       
-      // Update the session state with the updated session
-      setSession(updatedSession)
+      // If the server returned a different session ID, preserve the original one
+      if (updatedSession.id !== originalSessionId) {
+        console.log('Server returned different session ID, preserving original:', originalSessionId)
+        // Create a new session object with the original ID but updated votes
+        const preservedSession = {
+          ...updatedSession,
+          id: originalSessionId
+        }
+        setSession(preservedSession)
+      } else {
+        // If the session ID is the same, just update the session
+        setSession(updatedSession)
+      }
       
       // Don't update the URL here - we want to keep the same session ID
-      // Even if the server returns a new session ID, we'll keep the original one in the URL
     } catch (err) {
       console.error('Error voting:', err)
       setError('Failed to vote')
