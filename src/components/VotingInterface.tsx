@@ -26,10 +26,7 @@ export default function VotingInterface({ restaurant }: VotingInterfaceProps) {
     console.log(`Voting ${isUpvote ? 'up' : 'down'} on restaurant:`, restaurant.id)
     console.log('Current session:', session?.id)
     
-    if (!session) {
-      console.log('No session available, voting will create a new session')
-    }
-    
+    // Call handleVote directly - it will create a session if needed
     handleVote(restaurant.id, isUpvote)
   }
 
