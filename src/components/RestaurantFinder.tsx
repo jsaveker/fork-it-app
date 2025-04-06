@@ -7,6 +7,7 @@ import {
   Typography,
   CircularProgress,
   Alert,
+  Snackbar,
 } from '@mui/material'
 import { motion, AnimatePresence } from 'framer-motion'
 import RestaurantCard from './RestaurantCard'
@@ -36,6 +37,7 @@ const RestaurantFinder = () => {
   const { session, loading: sessionLoading, error: sessionError, loadSessionById, getAllVotes } = useVoting()
   const [addingRestaurant, setAddingRestaurant] = useState(false)
   const [addError, setAddError] = useState<string | null>(null)
+  const [showCopyMessage, setShowCopyMessage] = useState(false)
 
   const [showFilters, setShowFilters] = useState(false)
 
@@ -103,6 +105,10 @@ const RestaurantFinder = () => {
     // If we have a session with restaurants, check if any have votes
     if (session && session.restaurants.length > 0) {
       console.log('Session has restaurants, checking for votes')
+      console.log('Session ID:', session.id)
+      console.log('Session restaurants:', session.restaurants.length)
+      
+      // Make sure we're using the restaurants from the session
       const highestVotedRestaurant = findHighestVotedRestaurant(session.restaurants)
       
       // If there's a restaurant with votes, select it instead of a random one
@@ -147,6 +153,16 @@ const RestaurantFinder = () => {
     findRestaurants(newFilters)
   }
 
+  const copySessionUrl = () => {
+    if (session) {
+      const url = new URL(window.location.href)
+      url.searchParams.set('session', session.id)
+      navigator.clipboard.writeText(url.toString())
+      setShowCopyMessage(true)
+      setTimeout(() => setShowCopyMessage(false), 3000)
+    }
+  }
+
   if (locationLoading || restaurantsLoading || sessionLoading) {
     return <LoadingSpinner message="Finding restaurants near you..." />
   }
@@ -162,7 +178,7 @@ const RestaurantFinder = () => {
 
   return (
     <Container maxWidth="lg" sx={{ py: 4 }}>
-      <Box sx={{ mb: 4, display: 'flex', justifyContent: 'center' }}>
+      <Box sx={{ mb: 4, display: 'flex', justifyContent: 'center', flexDirection: 'column', alignItems: 'center' }}>
         <motion.div
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
@@ -177,6 +193,7 @@ const RestaurantFinder = () => {
               px: 4,
               fontSize: '1.2rem',
               borderRadius: 3,
+              mb: 2,
             }}
           >
             {addingRestaurant ? (
@@ -186,6 +203,16 @@ const RestaurantFinder = () => {
             )}
           </Button>
         </motion.div>
+        
+        {session && (
+          <Button
+            variant="outlined"
+            onClick={copySessionUrl}
+            sx={{ mt: 1 }}
+          >
+            Copy Session Link
+          </Button>
+        )}
       </Box>
       
       {addError && (
@@ -280,6 +307,13 @@ const RestaurantFinder = () => {
           </Button>
         </Box>
       )}
+      
+      <Snackbar
+        open={showCopyMessage}
+        autoHideDuration={3000}
+        onClose={() => setShowCopyMessage(false)}
+        message="Session link copied to clipboard!"
+      />
     </Container>
   )
 }
