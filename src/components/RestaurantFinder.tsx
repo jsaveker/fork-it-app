@@ -84,14 +84,11 @@ const RestaurantFinder = () => {
 
     console.log('Finding highest voted restaurant among:', restaurants.length, 'restaurants')
     
-    // Create a map of restaurant IDs to vote counts
-    const restaurantVotes = new Map<string, { restaurant: Restaurant, voteCount: number }>()
-    
-    // Calculate vote counts for all restaurants
+    // Log all restaurants and their vote counts first
+    console.log('All restaurants and their vote counts:')
     restaurants.forEach(restaurant => {
       const votes = getAllVotes(restaurant.id)
       const voteCount = votes.upvotes - votes.downvotes
-      restaurantVotes.set(restaurant.id, { restaurant, voteCount })
       console.log(`- ${restaurant.name}: ${voteCount} votes (${votes.upvotes} up, ${votes.downvotes} down)`)
     })
     
@@ -99,15 +96,18 @@ const RestaurantFinder = () => {
     let highestVotedRestaurant: Restaurant | null = null
     let highestVoteCount = -Infinity
     
-    restaurantVotes.forEach((data, id) => {
-      console.log(`Checking restaurant: ${data.restaurant.name}, Votes: ${data.voteCount}`)
+    for (const restaurant of restaurants) {
+      const votes = getAllVotes(restaurant.id)
+      const voteCount = votes.upvotes - votes.downvotes
       
-      if (data.voteCount > highestVoteCount) {
-        highestVoteCount = data.voteCount
-        highestVotedRestaurant = data.restaurant
-        console.log(`New highest voted restaurant: ${data.restaurant.name} with ${data.voteCount} votes`)
+      console.log(`Checking restaurant: ${restaurant.name}, Votes: ${voteCount}`)
+      
+      if (voteCount > highestVoteCount) {
+        highestVoteCount = voteCount
+        highestVotedRestaurant = restaurant
+        console.log(`New highest voted restaurant: ${restaurant.name} with ${voteCount} votes`)
       }
-    })
+    }
     
     if (highestVotedRestaurant) {
       console.log(`Selected highest voted restaurant: ${highestVotedRestaurant.name} with ${highestVoteCount} votes`)
