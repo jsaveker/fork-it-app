@@ -9,7 +9,7 @@ declare namespace google.maps.places {
   class Place {
     constructor(options: PlaceOptions);
     static searchNearby(request: {
-      location: google.maps.LatLng | google.maps.LatLngLiteral;
+      location: google.maps.LatLng;
       radius: number;
       type?: string;
       keyword?: string;

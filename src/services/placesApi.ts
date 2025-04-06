@@ -19,9 +19,13 @@ export const searchNearbyRestaurants = async (
   const radiusInMeters = filters.distance * 1609.34
 
   try {
+    // Create a LatLng object for the location
+    const latLng = new window.google.maps.LatLng(latitude, longitude);
+    
     // Use the new Place API to search for nearby restaurants
     const response = await window.google.maps.places.Place.searchNearby({
-      location: { lat: latitude, lng: longitude },
+      // Use the LatLng object directly
+      location: latLng,
       radius: radiusInMeters,
       type: 'restaurant',
       keyword: filters.cuisineTypes.length > 0 ? filters.cuisineTypes.join(' ') : undefined,
