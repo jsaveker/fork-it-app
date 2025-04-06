@@ -62,24 +62,31 @@ export const useVoting = () => {
         
         console.log('Initial session ID from URL:', sessionId)
         
-        let loadedSession: GroupSession | null = null
-        
-        if (sessionId) {
-          // Try to load the session from the URL parameter
-          console.log('Attempting to load session from URL:', sessionId)
-          loadedSession = await getSession(sessionId)
+        // Only attempt to load or create a session if we don't have one already
+        if (!session) {
+          let loadedSession: GroupSession | null = null
+          
+          if (sessionId) {
+            // Try to load the session from the URL parameter
+            console.log('Attempting to load session from URL:', sessionId)
+            loadedSession = await getSession(sessionId)
+            
+            if (loadedSession) {
+              console.log('Successfully loaded session:', loadedSession.id)
+              setSession(loadedSession)
+              updateUrlWithSessionId(loadedSession.id)
+            }
+          }
+          
+          if (!loadedSession) {
+            // If no session ID in URL or session not found, create a new one
+            console.log('Creating new session')
+            loadedSession = await createSession('Default Session')
+            // Update the URL with the new session ID
+            updateUrlWithSessionId(loadedSession.id)
+            setSession(loadedSession)
+          }
         }
-        
-        if (!loadedSession) {
-          // If no session ID in URL or session not found, create a new one
-          console.log('Creating new session')
-          loadedSession = await createSession('Default Session')
-          // Update the URL with the new session ID
-          updateUrlWithSessionId(loadedSession.id)
-        }
-        
-        console.log('Setting session:', loadedSession.id)
-        setSession(loadedSession)
       } catch (err) {
         console.error('Error loading session:', err)
         setError('Failed to load session')
@@ -89,7 +96,7 @@ export const useVoting = () => {
     }
     
     loadSession()
-  }, [])
+  }, []) // Only run this effect once on mount
 
   const handleVote = async (restaurantId: string, isUpvote: boolean) => {
     if (!session) return
