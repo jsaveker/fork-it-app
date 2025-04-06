@@ -24,20 +24,8 @@ const PRICE_LABELS = {
 }
 
 export default function FilterPanel({ filters, onChange }: FilterPanelProps) {
-  const [localDistance, setLocalDistance] = useState(filters.distance)
   const [localPriceLevel, setLocalPriceLevel] = useState<number>(filters.priceLevel[0])
   const [debounceTimer, setDebounceTimer] = useState<number | null>(null)
-
-  // Debounce the distance changes
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      if (localDistance !== filters.distance) {
-        onChange({ distance: localDistance })
-      }
-    }, 500) // 500ms delay
-    
-    return () => clearTimeout(timer)
-  }, [localDistance, filters.distance, onChange])
 
   // Update local price level when filters change
   useEffect(() => {
@@ -86,7 +74,7 @@ export default function FilterPanel({ filters, onChange }: FilterPanelProps) {
       <Box sx={{ mb: 3 }}>
         <Typography gutterBottom>Distance (miles)</Typography>
         <Slider
-          value={localDistance}
+          value={filters.distance}
           onChange={handleDistanceChange}
           min={1}
           max={20}
