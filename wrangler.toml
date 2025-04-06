@@ -1,13 +1,13 @@
 name = "forkit"
 compatibility_date = "2024-01-01"
 compatibility_flags = ["nodejs_compat"]
+main = "workers/session-api.js"
 
 [observability]
 enabled = true
 
 [site]
 bucket = "./dist"
-entry-point = "workers-site"
 
 # Custom domain configuration
 [[routes]]
@@ -17,8 +17,8 @@ custom_domain = true
 # KV namespace for storing sessions
 [[kv_namespaces]]
 binding = "SESSIONS_KV"
-id = "your-kv-namespace-id" # Replace with your actual KV namespace ID
-preview_id = "your-preview-kv-namespace-id" # Replace with your actual preview KV namespace ID
+id = "054a532157ab4303bcba93e6ee2495d2"
+preview_id = "ea025c77f4ff4fa0bc5b7c3ff57f68d6"
 
 # Environment variables should be set in the Cloudflare dashboard
 # DO NOT put sensitive keys in this file 
