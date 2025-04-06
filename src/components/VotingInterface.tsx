@@ -2,6 +2,7 @@ import {
   Box,
   IconButton,
   Badge,
+  Typography,
 } from '@mui/material'
 import {
   ThumbUp as ThumbUpIcon,
@@ -29,10 +30,11 @@ export default function VotingInterface({ restaurant }: VotingInterfaceProps) {
           onClick={() => handleVote(restaurant.id, true)}
           color={hasUpvoted ? 'primary' : 'default'}
         >
-          <Badge badgeContent={allVotes.upvotes} color="primary">
-            <ThumbUpIcon />
-          </Badge>
+          <ThumbUpIcon />
         </IconButton>
+        <Typography variant="body2" sx={{ ml: 1 }}>
+          {allVotes.upvotes}
+        </Typography>
       </Box>
 
       <Box sx={{ display: 'flex', alignItems: 'center' }}>
@@ -40,10 +42,11 @@ export default function VotingInterface({ restaurant }: VotingInterfaceProps) {
           onClick={() => handleVote(restaurant.id, false)}
           color={hasDownvoted ? 'primary' : 'default'}
         >
-          <Badge badgeContent={allVotes.downvotes} color="error">
-            <ThumbDownIcon />
-          </Badge>
+          <ThumbDownIcon />
         </IconButton>
+        <Typography variant="body2" sx={{ ml: 1 }}>
+          {allVotes.downvotes}
+        </Typography>
       </Box>
     </Box>
   )
