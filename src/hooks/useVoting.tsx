@@ -91,7 +91,10 @@ export const useVoting = () => {
           if (loadedSession) {
             console.log('Successfully loaded session:', loadedSession.id)
             setSession(loadedSession)
-            updateUrlWithSessionId(loadedSession.id)
+            // Don't update the URL if we're already on the correct session
+            if (session?.id !== loadedSession.id) {
+              updateUrlWithSessionId(loadedSession.id)
+            }
           } else {
             console.log('Session not found, creating new one')
             await createNewSession()
@@ -220,6 +223,7 @@ export const useVoting = () => {
     loadSessionById,
     loading,
     error,
-    getSessionUrl
+    getSessionUrl,
+    setSession
   }
 } 
