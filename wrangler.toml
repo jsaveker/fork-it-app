@@ -3,6 +3,14 @@ compatibility_date = "2024-09-23"
 compatibility_flags = ["nodejs_compat_v2"]
 main = "workers/session-api.js"
 
+# Specify that we're using ES modules
+[build]
+command = "npm run build"
+[build.upload]
+format = "modules"
+main = "./workers/session-api.js"
+dir = "."
+
 [observability]
 enabled = true
 
