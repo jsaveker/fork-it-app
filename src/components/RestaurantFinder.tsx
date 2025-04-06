@@ -87,11 +87,19 @@ const RestaurantFinder = () => {
 
     console.log('Finding highest voted restaurant among:', restaurants.length, 'restaurants')
     
+    // Log all restaurants and their vote counts first
+    console.log('All restaurants and their vote counts:')
+    restaurants.forEach(restaurant => {
+      const votes = getAllVotes(restaurant.id)
+      const voteCount = votes.upvotes - votes.downvotes
+      console.log(`- ${restaurant.name}: ${voteCount} votes (${votes.upvotes} up, ${votes.downvotes} down)`)
+    })
+    
     for (const restaurant of restaurants) {
       const votes = getAllVotes(restaurant.id)
       const voteCount = votes.upvotes - votes.downvotes
       
-      console.log(`Restaurant: ${restaurant.name}, Votes: ${voteCount} (${votes.upvotes} up, ${votes.downvotes} down)`)
+      console.log(`Checking restaurant: ${restaurant.name}, Votes: ${voteCount} (${votes.upvotes} up, ${votes.downvotes} down)`)
       
       if (voteCount > highestVoteCount) {
         highestVoteCount = voteCount
