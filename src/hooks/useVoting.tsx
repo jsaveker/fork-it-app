@@ -126,8 +126,14 @@ export const useVoting = () => {
   // Function to get the session URL for sharing
   const getSessionUrl = () => {
     if (!session) return ''
-    const url = new URL(window.location.href)
+    
+    // Create a new URL based on the current window location
+    const url = new URL(window.location.origin + window.location.pathname)
+    
+    // Add the session ID as a query parameter
     url.searchParams.set('session', session.id)
+    
+    console.log('Generated session URL:', url.toString())
     return url.toString()
   }
 

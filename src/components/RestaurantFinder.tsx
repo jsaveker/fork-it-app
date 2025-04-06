@@ -65,9 +65,14 @@ const RestaurantFinder = () => {
   // Select the highest-voted restaurant when the session changes
   useEffect(() => {
     if (session && session.restaurants.length > 0) {
+      console.log('Session changed, finding highest voted restaurant')
+      console.log('Session ID:', session.id)
+      console.log('Session restaurants:', session.restaurants.length)
+      
       // Find the restaurant with the highest votes
       const highestVotedRestaurant = findHighestVotedRestaurant(session.restaurants)
       if (highestVotedRestaurant) {
+        console.log('Setting selected restaurant to highest voted:', highestVotedRestaurant.name)
         setSelectedRestaurant(highestVotedRestaurant)
       }
     }
