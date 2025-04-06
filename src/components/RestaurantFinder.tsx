@@ -43,10 +43,11 @@ const RestaurantFinder = () => {
 
   // Load restaurants when location is available
   useEffect(() => {
-    if (location && !locationLoading) {
+    if (location) {
+      console.log('Location available, finding restaurants:', location)
       findRestaurants()
     }
-  }, [location, locationLoading])
+  }, [location])
 
   // Check for session ID in URL and load session if needed
   useEffect(() => {
@@ -164,17 +165,30 @@ const RestaurantFinder = () => {
     findRestaurants(newFilters)
   }
 
-  if (locationLoading || restaurantsLoading || sessionLoading) {
-    return <LoadingSpinner message="Finding restaurants near you..." />
-  }
-
-  if (locationError || restaurantsError || sessionError) {
+  if (locationError) {
     return (
       <ErrorDisplay
-        message={locationError || restaurantsError || sessionError || 'An error occurred'}
+        message="Unable to get your location. Please enable location services and refresh the page."
         onRetry={() => window.location.reload()}
       />
     )
+  }
+
+  if (restaurantsError || sessionError) {
+    return (
+      <ErrorDisplay
+        message={restaurantsError || sessionError || 'An error occurred'}
+        onRetry={() => window.location.reload()}
+      />
+    )
+  }
+
+  if (locationLoading && !location) {
+    return <LoadingSpinner message="Getting your location..." />
+  }
+
+  if (restaurantsLoading && restaurants.length === 0) {
+    return <LoadingSpinner message="Finding restaurants near you..." />
   }
 
   return (
