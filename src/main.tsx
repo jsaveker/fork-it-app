@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom/client'
 import { ThemeProvider, createTheme, CssBaseline } from '@mui/material'
 import { BrowserRouter } from 'react-router-dom'
 import { LocationProvider } from './hooks/useLocation'
+import { RestaurantsProvider } from './hooks/useRestaurants'
 import App from './App.tsx'
 import './index.css'
 
@@ -50,10 +51,12 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <BrowserRouter>
       <LocationProvider>
-        <ThemeProvider theme={theme}>
-          <CssBaseline />
-          <App />
-        </ThemeProvider>
+        <RestaurantsProvider>
+          <ThemeProvider theme={theme}>
+            <CssBaseline />
+            <App />
+          </ThemeProvider>
+        </RestaurantsProvider>
       </LocationProvider>
     </BrowserRouter>
   </React.StrictMode>,
