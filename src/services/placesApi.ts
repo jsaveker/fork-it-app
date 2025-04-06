@@ -19,68 +19,73 @@ export const searchNearbyRestaurants = async (
   const radiusInMeters = filters.distance * 1609.34
 
   try {
-    // Create a LatLng object for the location
-    const latLng = new window.google.maps.LatLng(latitude, longitude);
+    // Create a map element for the Places service
+    const mapElement = document.createElement('div')
+    const map = new window.google.maps.Map(mapElement, {
+      center: { lat: latitude, lng: longitude },
+      zoom: 15,
+    })
     
-    // Use the new Place API to search for nearby restaurants
-    const response = await window.google.maps.places.Place.searchNearby({
-      // Use the LatLng object directly
-      location: latLng,
+    // Use the Places service
+    const service = new window.google.maps.places.PlacesService(map)
+    
+    // Build the request with all filters
+    const request: google.maps.places.PlaceSearchRequest = {
+      location: new window.google.maps.LatLng(latitude, longitude),
       radius: radiusInMeters,
       type: 'restaurant',
-      keyword: filters.cuisineTypes.length > 0 ? filters.cuisineTypes.join(' ') : undefined,
-    })
-
-    if (response.status !== 'OK') {
-      throw new Error(`Places API error: ${response.status}`)
     }
 
-    // Filter and format the results
-    return response.results
-      .filter(place => {
-        // Apply our custom filters
-        if (filters.rating > 0 && (!place.rating || place.rating < filters.rating)) {
-          return false
-        }
+    // Add cuisine type filter if specified
+    if (filters.cuisineTypes.length > 0) {
+      // Join cuisine types with spaces for the keyword parameter
+      request.keyword = filters.cuisineTypes.join(' ')
+    }
 
-        if (
-          filters.priceLevel.length > 0 &&
-          (!place.price_level || !filters.priceLevel.includes(place.price_level))
-        ) {
-          return false
-        }
+    // Add price level filter if specified
+    if (filters.priceLevel.length > 0) {
+      request.minPriceLevel = Math.min(...filters.priceLevel)
+      request.maxPriceLevel = Math.max(...filters.priceLevel)
+    }
 
-        if (filters.cuisineTypes.length > 0) {
-          const placeTypes = place.types || []
-          const hasMatchingCuisine = filters.cuisineTypes.some(cuisine =>
-            placeTypes.includes(cuisine)
+    // Convert callback-based API to Promise-based
+    return new Promise((resolve, reject) => {
+      service.nearbySearch(request, (results, status) => {
+        if (status === window.google.maps.places.PlacesServiceStatus.OK && results) {
+          // Filter results based on rating
+          const filteredResults = results.filter(place => 
+            (place.rating || 0) >= filters.rating
           )
-          if (!hasMatchingCuisine) return false
-        }
 
-        return true
+          // Convert to our Restaurant type
+          const restaurants: Restaurant[] = filteredResults.map(place => ({
+            id: place.place_id || '',
+            name: place.name || '',
+            vicinity: place.vicinity || '',
+            rating: place.rating || 0,
+            user_ratings_total: place.user_ratings_total || 0,
+            price_level: place.price_level || 0,
+            geometry: {
+              location: {
+                lat: place.geometry?.location?.lat() || 0,
+                lng: place.geometry?.location?.lng() || 0,
+              },
+            },
+            types: place.types || [],
+            photos: place.photos?.map(photo => ({
+              height: photo.height,
+              width: photo.width,
+              html_attributions: photo.html_attributions,
+              photo_reference: photo.getUrl(),
+            })) || [],
+          }))
+
+          resolve(restaurants)
+        } else {
+          reject(new Error(`Places API error: ${status}`))
+        }
       })
-      .map(place => ({
-        id: place.place_id,
-        name: place.name,
-        vicinity: place.vicinity,
-        rating: place.rating || 0,
-        user_ratings_total: place.user_ratings_total || 0,
-        price_level: place.price_level || 0,
-        geometry: {
-          location: {
-            lat: place.geometry.location.lat,
-            lng: place.geometry.location.lng,
-          },
-        },
-        types: place.types || [],
-        photos: place.photos?.map(photo => ({
-          height: photo.height,
-          width: photo.width,
-          html_attributions: photo.html_attributions,
-          photo_reference: photo.photo_reference,
-        })) || [],
-      }))
+    })
   } catch (error) {
     console.error('Error searching for restaurants:', error)
     throw error
