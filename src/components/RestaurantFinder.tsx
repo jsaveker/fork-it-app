@@ -43,10 +43,10 @@ const RestaurantFinder = () => {
 
   // Load restaurants when location is available
   useEffect(() => {
-    if (location) {
+    if (location && !locationLoading) {
       findRestaurants()
     }
-  }, [location])
+  }, [location, locationLoading])
 
   // Check for session ID in URL and load session if needed
   useEffect(() => {

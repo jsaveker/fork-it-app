@@ -52,8 +52,8 @@ export const useVoting = () => {
 
   useEffect(() => {
     const loadSession = async () => {
-      // Skip if we're already loading or have a session
-      if (loading || session) return
+      // Skip if we're already loading
+      if (loading) return
       
       setLoading(true)
       setError(null)
