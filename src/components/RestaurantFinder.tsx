@@ -94,18 +94,21 @@ const RestaurantFinder = () => {
     
     // Find the restaurant with the highest vote count
     let highestVotedRestaurant: Restaurant | null = null
-    let highestVoteCount = -Infinity
+    let highestVoteCount = -1 // Start at -1 so that 0 votes can be considered
     
     for (const restaurant of restaurants) {
       const votes = getAllVotes(restaurant.id)
       const voteCount = votes.upvotes - votes.downvotes
       
-      console.log(`Checking restaurant: ${restaurant.name}, Votes: ${voteCount}`)
+      console.log(`Checking restaurant: ${restaurant.name}, Votes: ${voteCount} (${votes.upvotes} up, ${votes.downvotes} down)`)
       
-      if (voteCount > highestVoteCount) {
-        highestVoteCount = voteCount
-        highestVotedRestaurant = restaurant
-        console.log(`New highest voted restaurant: ${restaurant.name} with ${voteCount} votes`)
+      // Only consider restaurants that have at least one vote
+      if (votes.upvotes > 0 || votes.downvotes > 0) {
+        if (voteCount >= highestVoteCount) {
+          highestVoteCount = voteCount
+          highestVotedRestaurant = restaurant
+          console.log(`New highest voted restaurant: ${restaurant.name} with ${voteCount} votes`)
+        }
       }
     }
     
