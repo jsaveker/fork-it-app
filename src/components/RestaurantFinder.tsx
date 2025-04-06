@@ -153,15 +153,6 @@ const RestaurantFinder = () => {
     findRestaurants(newFilters)
   }
 
-  const copySessionUrl = () => {
-    const url = getSessionUrl()
-    if (url) {
-      navigator.clipboard.writeText(url)
-      setShowCopyMessage(true)
-      setTimeout(() => setShowCopyMessage(false), 3000)
-    }
-  }
-
   if (locationLoading || restaurantsLoading || sessionLoading) {
     return <LoadingSpinner message="Finding restaurants near you..." />
   }
@@ -202,16 +193,6 @@ const RestaurantFinder = () => {
             )}
           </Button>
         </motion.div>
-        
-        {session && (
-          <Button
-            variant="outlined"
-            onClick={copySessionUrl}
-            sx={{ mt: 1 }}
-          >
-            Copy Session Link
-          </Button>
-        )}
       </Box>
       
       {addError && (

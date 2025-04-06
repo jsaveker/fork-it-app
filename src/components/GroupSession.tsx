@@ -15,23 +15,19 @@ import {
 import { useVoting } from '../hooks/useVoting'
 
 export default function GroupSession() {
-  const { session } = useVoting()
+  const { session, getSessionUrl } = useVoting()
   const [showCopied, setShowCopied] = useState(false)
 
   if (!session) {
     return null
   }
 
-  // Create a URL with the session ID as a parameter
-  const getSessionUrl = () => {
-    const url = new URL(window.location.href)
-    url.searchParams.set('session', session.id)
-    return url.toString()
-  }
-
   const handleCopyLink = () => {
-    navigator.clipboard.writeText(getSessionUrl())
-    setShowCopied(true)
+    const url = getSessionUrl()
+    if (url) {
+      navigator.clipboard.writeText(url)
+      setShowCopied(true)
+    }
   }
 
   const handleShare = async () => {
@@ -101,9 +97,9 @@ export default function GroupSession() {
       
       <Snackbar
         open={showCopied}
-        autoHideDuration={2000}
+        autoHideDuration={3000}
         onClose={() => setShowCopied(false)}
-        message="Session link copied to clipboard"
+        message="Session link copied to clipboard!"
       />
     </Paper>
   )
