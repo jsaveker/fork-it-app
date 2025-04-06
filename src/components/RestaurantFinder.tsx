@@ -85,17 +85,8 @@ const RestaurantFinder = () => {
 
     console.log('Finding highest voted restaurant among:', restaurants.length, 'restaurants')
     
-    // Log all restaurants and their vote counts first
-    console.log('All restaurants and their vote counts:')
-    restaurants.forEach(restaurant => {
-      const votes = getAllVotes(restaurant.id)
-      const voteCount = votes.upvotes - votes.downvotes
-      console.log(`- ${restaurant.name}: ${voteCount} votes (${votes.upvotes} up, ${votes.downvotes} down)`)
-    })
-    
-    // Find the restaurant with the highest vote count
     let highestVotedRestaurant: Restaurant | null = null
-    let highestVoteCount = -1 // Start at -1 so that 0 votes can be considered
+    let highestVoteCount = -1
     
     for (const restaurant of restaurants) {
       const votes = getAllVotes(restaurant.id)
@@ -105,7 +96,7 @@ const RestaurantFinder = () => {
       
       // Only consider restaurants that have at least one vote
       if (votes.upvotes > 0 || votes.downvotes > 0) {
-        if (voteCount >= highestVoteCount) {
+        if (voteCount > highestVoteCount) {
           highestVoteCount = voteCount
           highestVotedRestaurant = restaurant
           console.log(`New highest voted restaurant: ${restaurant.name} with ${voteCount} votes`)
@@ -129,44 +120,25 @@ const RestaurantFinder = () => {
       console.log('Session ID:', session.id)
       console.log('Session restaurants:', session.restaurants.length)
       
-      // Check if any restaurant has votes (upvotes or downvotes)
-      let hasVotedRestaurants = false;
+      // Find the highest voted restaurant
+      const highestVotedRestaurant = findHighestVotedRestaurant(session.restaurants)
       
-      // First, check if any restaurant has votes
-      for (const restaurant of session.restaurants) {
-        const votes = getAllVotes(restaurant.id);
-        const hasVotes = votes.upvotes > 0 || votes.downvotes > 0;
-        console.log(`Restaurant ${restaurant.name} has ${votes.upvotes} upvotes and ${votes.downvotes} downvotes: ${hasVotes ? 'has votes' : 'no votes'}`);
-        
-        if (hasVotes) {
-          hasVotedRestaurants = true;
-          break;
-        }
-      }
-      
-      console.log(`Has restaurants with votes: ${hasVotedRestaurants}`);
-      
-      if (hasVotedRestaurants) {
-        // Make sure we're using the restaurants from the session
-        const highestVotedRestaurant = findHighestVotedRestaurant(session.restaurants);
-        
-        if (highestVotedRestaurant) {
-          console.log('Setting selected restaurant to highest voted:', highestVotedRestaurant.name);
-          setSelectedRestaurant(highestVotedRestaurant);
-          return;
-        }
+      if (highestVotedRestaurant) {
+        console.log('Setting selected restaurant to highest voted:', highestVotedRestaurant.name)
+        setSelectedRestaurant(highestVotedRestaurant)
+        return
       }
     }
     
-    console.log('No restaurants with votes found, selecting random restaurant');
+    console.log('No restaurants with votes found, selecting random restaurant')
     // Otherwise, get a random restaurant
-    const restaurant = getRandomRestaurant();
+    const restaurant = getRandomRestaurant()
     if (restaurant) {
-      setSelectedRestaurant(restaurant);
+      setSelectedRestaurant(restaurant)
       
       // Add the restaurant to the session if we have one
       if (session) {
-        addRestaurantToSession(restaurant);
+        addRestaurantToSession(restaurant)
       }
     }
   }
