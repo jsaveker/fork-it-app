@@ -34,7 +34,7 @@ const RestaurantFinder = () => {
     updateFilters,
   } = useRestaurants()
   
-  const { session, loading: sessionLoading, error: sessionError, loadSessionById, getAllVotes } = useVoting()
+  const { session, loading: sessionLoading, error: sessionError, loadSessionById, getAllVotes, getSessionUrl } = useVoting()
   const [addingRestaurant, setAddingRestaurant] = useState(false)
   const [addError, setAddError] = useState<string | null>(null)
   const [showCopyMessage, setShowCopyMessage] = useState(false)
@@ -154,10 +154,9 @@ const RestaurantFinder = () => {
   }
 
   const copySessionUrl = () => {
-    if (session) {
-      const url = new URL(window.location.href)
-      url.searchParams.set('session', session.id)
-      navigator.clipboard.writeText(url.toString())
+    const url = getSessionUrl()
+    if (url) {
+      navigator.clipboard.writeText(url)
       setShowCopyMessage(true)
       setTimeout(() => setShowCopyMessage(false), 3000)
     }
