@@ -1,10 +1,5 @@
 import { Session } from '../types/Session'
 
-// KV store keys
-const UPVOTES_KEY_PREFIX = 'upvotes:'
-const DOWNVOTES_KEY_PREFIX = 'downvotes:'
-const SESSION_KEY_PREFIX = 'session:'
-
 // Get upvotes for a restaurant
 export const getUpvotes = async (restaurantId: string): Promise<number> => {
   try {
