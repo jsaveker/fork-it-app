@@ -131,8 +131,22 @@ export const useVoting = () => {
   // Get session URL
   const getSessionUrl = (): string => {
     if (!session) return ''
-    const url = `${window.location.origin}?session=${session.id}`
-    return url
+    
+    // Create a URL with the session ID
+    const url = new URL(window.location.origin + window.location.pathname)
+    url.searchParams.set('session', session.id)
+    
+    // Preserve filter parameters from the current URL
+    const currentParams = new URLSearchParams(window.location.search)
+    const filterParams = ['price', 'distance', 'rating', 'openNow', 'sortBy']
+    
+    filterParams.forEach(param => {
+      if (currentParams.has(param)) {
+        url.searchParams.set(param, currentParams.get(param) || '')
+      }
+    })
+    
+    return url.toString()
   }
 
   // Get votes for a restaurant
