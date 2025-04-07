@@ -24,7 +24,7 @@ A fun web application that helps indecisive office workers figure out where to g
 
 - Node.js (v14 or higher)
 - npm or yarn
-- Google Places API key
+- Cloudflare account (for deployment)
 
 ### Installation
 
@@ -39,9 +39,9 @@ A fun web application that helps indecisive office workers figure out where to g
    npm install
    ```
 
-3. Create a `.env` file in the root directory with your Google Places API key:
+3. Create a `.env` file in the root directory with the API URL:
    ```
-   VITE_GOOGLE_MAPS_API_KEY=your_api_key_here
+   VITE_API_URL=https://api.fork-it.cc
    ```
 
 4. Start the development server:
@@ -55,6 +55,13 @@ A fun web application that helps indecisive office workers figure out where to g
 
 This project is configured to be deployed on Cloudflare Pages. Simply connect your GitHub repository to Cloudflare Pages and it will automatically build and deploy your application.
 
+### Setting up the Cloudflare Worker
+
+1. Create a new Cloudflare Worker
+2. Set the following environment variables in the Cloudflare dashboard:
+   - `GOOGLE_PLACES_API_KEY`: Your Google Places API key
+   - `SESSIONS_KV`: A KV namespace for storing sessions
+
 ## Technologies Used
 
 - React
@@ -62,6 +69,7 @@ This project is configured to be deployed on Cloudflare Pages. Simply connect yo
 - Vite
 - Material UI
 - Framer Motion
+- Cloudflare Workers
 - Google Places API
 
 ## License
@@ -73,3 +81,4 @@ This project is licensed under the Apache 2.0 - see the LICENSE file for details
 - Google Places API for restaurant data
 - Material UI for component library
 - Framer Motion for animations
+- Cloudflare for hosting and serverless functions
