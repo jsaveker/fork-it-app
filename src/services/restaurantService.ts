@@ -1,4 +1,5 @@
 import { RestaurantVote } from '../types'
+import { getSession } from './sessionApi'
 
 // Base URL for the API
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://api.fork-it.cc'
@@ -6,13 +7,15 @@ const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://api.fork-it.cc'
 // Get upvotes for a restaurant
 export const getUpvotes = async (sessionId: string, restaurantId: string): Promise<string[]> => {
   try {
-    const response = await fetch(`${API_BASE_URL}/sessions/${sessionId}`);
-    if (!response.ok) {
-      throw new Error('Failed to get upvotes');
+    const session = await getSession(sessionId);
+    if (!session) {
+      return [];
     }
-    const session = await response.json();
     const restaurantVote = session.votes.find((v: RestaurantVote) => v.restaurantId === restaurantId);
-    return restaurantVote ? restaurantVote.upvotes : [];
+    if (!restaurantVote) {
+      return [];
+    }
+    return Array.isArray(restaurantVote.upvotes) ? restaurantVote.upvotes : [];
   } catch (error) {
     console.error('Error getting upvotes:', error);
     return [];
@@ -22,13 +25,15 @@ export const getUpvotes = async (sessionId: string, restaurantId: string): Promi
 // Get downvotes for a restaurant
 export const getDownvotes = async (sessionId: string, restaurantId: string): Promise<string[]> => {
   try {
-    const response = await fetch(`${API_BASE_URL}/sessions/${sessionId}`);
-    if (!response.ok) {
-      throw new Error('Failed to get downvotes');
+    const session = await getSession(sessionId);
+    if (!session) {
+      return [];
     }
-    const session = await response.json();
     const restaurantVote = session.votes.find((v: RestaurantVote) => v.restaurantId === restaurantId);
-    return restaurantVote ? restaurantVote.downvotes : [];
+    if (!restaurantVote) {
+      return [];
+    }
+    return Array.isArray(restaurantVote.downvotes) ? restaurantVote.downvotes : [];
   } catch (error) {
     console.error('Error getting downvotes:', error);
     return [];
