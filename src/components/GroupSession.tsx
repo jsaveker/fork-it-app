@@ -21,6 +21,7 @@ export default function GroupSession() {
   const { session, getSessionUrl, loadSessionById, isLoading } = useVotingContext()
   const [showCopied, setShowCopied] = useState(false)
   const [isLoadingSession, setIsLoadingSession] = useState(false)
+  const [sessionLoadAttempted, setSessionLoadAttempted] = useState(false)
   const { sessionId: pathSessionId } = useParams<{ sessionId: string }>()
   const location = useLocation()
   
@@ -53,12 +54,17 @@ export default function GroupSession() {
           console.error('Error loading session:', error)
         } finally {
           setIsLoadingSession(false)
+          setSessionLoadAttempted(true)
         }
+      } else if (!sessionId && !sessionLoadAttempted) {
+        // If no session ID in URL and we haven't attempted to load yet, mark as attempted
+        setSessionLoadAttempted(true)
       }
     }
     loadSession()
   }, [pathSessionId, location.search]) // Only reload when URL parameters change
 
+  // Show loading state while loading session
   if (isLoading || isLoadingSession) {
     return (
       <Paper elevation={2} sx={{ p: 3, mb: 4, borderRadius: 2, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
@@ -67,7 +73,8 @@ export default function GroupSession() {
     )
   }
 
-  if (!session) {
+  // Show message if no session and we've attempted to load
+  if (!session && sessionLoadAttempted) {
     return (
       <Paper elevation={2} sx={{ p: 3, mb: 4, borderRadius: 2 }}>
         <Alert severity="info">
@@ -75,6 +82,20 @@ export default function GroupSession() {
         </Alert>
       </Paper>
     )
+  }
+
+  // Show loading state if session is undefined and we haven't attempted to load yet
+  if (!session && !sessionLoadAttempted) {
+    return (
+      <Paper elevation={2} sx={{ p: 3, mb: 4, borderRadius: 2, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+        <CircularProgress />
+      </Paper>
+    )
+  }
+
+  // At this point, session should be defined
+  if (!session) {
+    return null; // This should never happen due to the checks above
   }
 
   const handleCopyLink = () => {
