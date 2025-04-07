@@ -44,7 +44,7 @@ export default function GroupSession() {
   useEffect(() => {
     const loadSession = async () => {
       const sessionId = getSessionId()
-      if (sessionId) {
+      if (sessionId && (!session || session.id !== sessionId)) {
         console.log('Loading session from URL:', sessionId)
         setIsLoadingSession(true)
         try {
@@ -57,7 +57,7 @@ export default function GroupSession() {
       }
     }
     loadSession()
-  }, [pathSessionId, location.search, loadSessionById])
+  }, [pathSessionId, location.search]) // Only reload when URL parameters change
 
   if (isLoading || isLoadingSession) {
     return (
