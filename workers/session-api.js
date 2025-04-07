@@ -50,6 +50,9 @@ export default {
 
     // Get the KV namespace for storing sessions
     const SESSIONS = env.SESSIONS_KV;
+    
+    // Get the Google Places API key from environment variables
+    const GOOGLE_PLACES_API_KEY = env.GOOGLE_PLACES_API_KEY;
 
     try {
       // Handle different endpoints
@@ -259,6 +262,116 @@ export default {
         }
         
         return new Response(JSON.stringify(session), {
+          headers: {
+            'Content-Type': 'application/json',
+            ...corsHeaders,
+          },
+        });
+      }
+      else if (path === '/places/nearby' && request.method === 'POST') {
+        // Handle Google Places API requests
+        if (!GOOGLE_PLACES_API_KEY) {
+          return new Response(JSON.stringify({ error: 'Google Places API key is not configured' }), {
+            status: 500,
+            headers: {
+              'Content-Type': 'application/json',
+              ...corsHeaders,
+            },
+          });
+        }
+        
+        const { latitude, longitude, radius, filters } = await request.json();
+        
+        if (!latitude || !longitude || !radius) {
+          return new Response(JSON.stringify({ error: 'Missing required parameters' }), {
+            status: 400,
+            headers: {
+              'Content-Type': 'application/json',
+              ...corsHeaders,
+            },
+          });
+        }
+        
+        // Build the query parameters for the Google Places API
+        const queryParams = new URLSearchParams({
+          location: `${latitude},${longitude}`,
+          radius: radius.toString(),
+          type: 'restaurant',
+          key: GOOGLE_PLACES_API_KEY,
+        });
+        
+        // Add optional filters if they're set
+        if (filters && filters.rating > 0) {
+          queryParams.append('minprice', '0');
+          queryParams.append('maxprice', '4');
+        }
+        
+        // Make the API request to Google Places API
+        const response = await fetch(
+          `https://maps.googleapis.com/maps/api/place/nearbysearch/json?${queryParams.toString()}`
+        );
+        
+        if (!response.ok) {
+          return new Response(JSON.stringify({ error: 'Failed to fetch restaurants from Google Places API' }), {
+            status: 500,
+            headers: {
+              'Content-Type': 'application/json',
+              ...corsHeaders,
+            },
+          });
+        }
+        
+        const data = await response.json();
+        
+        if (data.status !== 'OK') {
+          return new Response(JSON.stringify({ error: `Google Places API error: ${data.status}` }), {
+            status: 500,
+            headers: {
+              'Content-Type': 'application/json',
+              ...corsHeaders,
+            },
+          });
+        }
+        
+        // Filter and format the results
+        const results = data.results
+          .filter(place => {
+            // Apply our custom filters
+            if (filters && filters.rating > 0 && (!place.rating || place.rating < filters.rating)) {
+              return false;
+            }
+            
+            if (
+              filters &&
+              filters.priceLevel &&
+              filters.priceLevel.length > 0 &&
+              (!place.price_level || !filters.priceLevel.includes(place.price_level))
+            ) {
+              return false;
+            }
+            
+            if (filters && filters.cuisineTypes && filters.cuisineTypes.length > 0) {
+              const placeTypes = place.types || [];
+              const hasMatchingCuisine = filters.cuisineTypes.some(cuisine =>
+                placeTypes.includes(cuisine)
+              );
+              if (!hasMatchingCuisine) return false;
+            }
+            
+            return true;
+          })
+          .map(place => ({
+            id: place.place_id,
+            name: place.name,
+            vicinity: place.vicinity,
+            rating: place.rating || 0,
+            user_ratings_total: place.user_ratings_total || 0,
+            price_level: place.price_level || 0,
+            geometry: place.geometry,
+            types: place.types || [],
+          }));
+        
+        return new Response(JSON.stringify({ results }), {
           headers: {
             'Content-Type': 'application/json',
             ...corsHeaders,
