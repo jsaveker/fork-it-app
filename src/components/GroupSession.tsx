@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import {
   Box,
   Typography,
@@ -7,7 +7,6 @@ import {
   Divider,
   IconButton,
   Tooltip,
-  Button,
   Alert,
 } from '@mui/material'
 import {
@@ -50,31 +49,33 @@ export default function GroupSession() {
 
   const handleCopyLink = () => {
     if (session) {
-      const url = getSessionUrl(session.id)
+      const url = getSessionUrl()
       navigator.clipboard.writeText(url)
       setShowCopied(true)
     }
   }
 
   const handleShare = async () => {
-    const url = getSessionUrl()
-    
-    // Check if the Web Share API is available
-    if (navigator.share) {
-      try {
-        await navigator.share({
-          title: 'Fork-it Session',
-          text: 'Join my restaurant voting session!',
-          url: url,
-        })
-      } catch (error) {
-        console.error('Error sharing:', error)
+    if (session) {
+      const url = getSessionUrl()
+      
+      // Check if the Web Share API is available
+      if (navigator.share) {
+        try {
+          await navigator.share({
+            title: 'Fork-it Session',
+            text: 'Join my restaurant voting session!',
+            url: url,
+          })
+        } catch (error) {
+          console.error('Error sharing:', error)
+          // Fallback to copying to clipboard
+          handleCopyLink()
+        }
+      } else {
         // Fallback to copying to clipboard
         handleCopyLink()
       }
-    } else {
-      // Fallback to copying to clipboard
-      handleCopyLink()
     }
   }
 
