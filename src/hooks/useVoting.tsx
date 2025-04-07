@@ -121,7 +121,7 @@ export const useVoting = () => {
         console.log('Initial session ID from URL:', sessionId)
         
         if (sessionId) {
-          // Try to load the session from the URL parameter
+          // Always try to load the session from the server, even if we have it in localStorage
           console.log('Attempting to load session from URL:', sessionId)
           const loadedSession = await getSession(sessionId)
           
@@ -171,6 +171,38 @@ export const useVoting = () => {
     if (session) {
       localStorage.setItem('current_session', JSON.stringify(session))
     }
+  }, [session])
+
+  // Add a refresh mechanism to periodically check for updates to the session
+  useEffect(() => {
+    if (!session) return
+    
+    const refreshInterval = setInterval(async () => {
+      try {
+        console.log('Refreshing session:', session.id)
+        const refreshedSession = await getSession(session.id)
+        
+        if (refreshedSession) {
+          console.log('Session refreshed successfully:', refreshedSession.id)
+          
+          // Always preserve the original session ID
+          console.log('Preserving original session ID:', session.id)
+          const preservedSession = {
+            ...refreshedSession,
+            id: session.id
+          }
+          setSession(preservedSession)
+          // Store in localStorage
+          localStorage.setItem('current_session', JSON.stringify(preservedSession))
+        } else {
+          console.log('Session not found during refresh')
+        }
+      } catch (err) {
+        console.error('Error refreshing session:', err)
+      }
+    }, 5000) // Refresh every 5 seconds
+    
+    return () => clearInterval(refreshInterval)
   }, [session])
 
   const handleVote = async (restaurantId: string, isUpvote: boolean) => {
