@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Session } from '../types/Session'
+import { GroupSession } from '../types/GroupSession'
 import { Restaurant } from '../types/Restaurant'
 import { getUpvotes, getDownvotes, upvoteRestaurant, downvoteRestaurant } from '../services/restaurantService'
 
@@ -11,7 +11,7 @@ export interface VoteCount {
 export type VoteResult = VoteCount | Record<string, VoteCount>
 
 export const useVoting = () => {
-  const [session, setSession] = useState<Session | null>(null)
+  const [session, setSession] = useState<GroupSession | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [votesCache, setVotesCache] = useState<Record<string, VoteCount>>({})
   const [isLoading, setIsLoading] = useState(false)
@@ -36,8 +36,9 @@ export const useVoting = () => {
   }
 
   // Get session URL
-  const getSessionUrl = (sessionId: string): string => {
-    return `${window.location.origin}?session=${sessionId}`
+  const getSessionUrl = (): string => {
+    if (!session) return ''
+    return `${window.location.origin}?session=${session.id}`
   }
 
   // Get votes for a restaurant
