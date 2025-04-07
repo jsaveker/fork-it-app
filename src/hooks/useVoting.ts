@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react'
 import { GroupSession, RestaurantVote } from '../types'
-import { Restaurant } from '../types/Restaurant'
 import { getUpvotes, getDownvotes, upvoteRestaurant, downvoteRestaurant } from '../services/restaurantService.js'
 
 // Base URL for the API
