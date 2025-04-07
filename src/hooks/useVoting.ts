@@ -20,65 +20,6 @@ export const useVoting = () => {
   const [userId] = useState<string>(() => crypto.randomUUID())
   const [sessionLoadAttempted, setSessionLoadAttempted] = useState(false)
 
-  // Check for session ID in URL on initialization
-  useEffect(() => {
-    const loadSessionFromUrl = async () => {
-      const urlParams = new URLSearchParams(window.location.search)
-      const sessionId = urlParams.get('session')
-      
-      if (sessionId && (!session || session.id !== sessionId)) {
-        console.log('Found session ID in URL:', sessionId)
-        try {
-          await loadSessionById(sessionId)
-        } catch (err) {
-          console.error('Error loading session from URL:', err)
-        } finally {
-          setSessionLoadAttempted(true)
-        }
-      } else {
-        setSessionLoadAttempted(true)
-      }
-    }
-    
-    loadSessionFromUrl()
-  }, [])
-
-  // Create a new session
-  const createSession = async (name: string = 'New Session') => {
-    try {
-      setIsLoading(true)
-      console.log('Creating session with name:', name)
-      const response = await fetch(`${API_BASE_URL}/sessions`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ name }),
-      })
-      
-      if (!response.ok) {
-        throw new Error('Failed to create session')
-      }
-      
-      const data = await response.json()
-      console.log('Session created successfully:', data)
-      setSession(data)
-      
-      // Update URL with session ID
-      const url = new URL(window.location.href)
-      url.searchParams.set('session', data.id)
-      window.history.pushState({}, '', url)
-      
-      return data
-    } catch (err) {
-      setError('Failed to create session')
-      console.error('Error creating session:', err)
-      return null
-    } finally {
-      setIsLoading(false)
-    }
-  }
-
   // Load session by ID
   const loadSessionById = async (sessionId: string) => {
     if (!sessionId) {
@@ -122,6 +63,65 @@ export const useVoting = () => {
     } catch (err) {
       setError('Failed to load session')
       console.error('Error loading session:', err)
+      return null
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  // Check for session ID in URL on initialization
+  useEffect(() => {
+    const loadSessionFromUrl = async () => {
+      const urlParams = new URLSearchParams(window.location.search)
+      const sessionId = urlParams.get('session')
+      
+      if (sessionId && (!session || session.id !== sessionId)) {
+        console.log('Found session ID in URL:', sessionId)
+        try {
+          await loadSessionById(sessionId)
+        } catch (err) {
+          console.error('Error loading session from URL:', err)
+        } finally {
+          setSessionLoadAttempted(true)
+        }
+      } else {
+        setSessionLoadAttempted(true)
+      }
+    }
+    
+    loadSessionFromUrl()
+  }, [session, loadSessionById])
+
+  // Create a new session
+  const createSession = async (name: string = 'New Session') => {
+    try {
+      setIsLoading(true)
+      console.log('Creating session with name:', name)
+      const response = await fetch(`${API_BASE_URL}/sessions`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ name }),
+      })
+      
+      if (!response.ok) {
+        throw new Error('Failed to create session')
+      }
+      
+      const data = await response.json()
+      console.log('Session created successfully:', data)
+      setSession(data)
+      
+      // Update URL with session ID
+      const url = new URL(window.location.href)
+      url.searchParams.set('session', data.id)
+      window.history.pushState({}, '', url)
+      
+      return data
+    } catch (err) {
+      setError('Failed to create session')
+      console.error('Error creating session:', err)
       return null
     } finally {
       setIsLoading(false)

@@ -62,7 +62,7 @@ export default function GroupSession() {
       }
     }
     loadSession()
-  }, [pathSessionId, location.search]) // Only reload when URL parameters change
+  }, [pathSessionId, location.search, session, loadSessionById]) // Add session and loadSessionById to dependencies
 
   // Show loading state while loading session
   if (isLoading || isLoadingSession) {
