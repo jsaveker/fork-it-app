@@ -34,7 +34,7 @@ const RestaurantFinder = () => {
     updateFilters,
   } = useRestaurants()
   
-  const { session, error: sessionError, getAllVotes, setSession, createSession, getSessionUrl } = useVotingContext()
+  const { session, error: sessionError, setSession, createSession, getSessionUrl } = useVotingContext()
   const [addingRestaurant, setAddingRestaurant] = useState(false)
   const [addError, setAddError] = useState<string | null>(null)
   const [showCopyMessage, setShowCopyMessage] = useState(false)
@@ -96,93 +96,41 @@ const RestaurantFinder = () => {
       updateFilters(newFilters)
       findRestaurants(newFilters)
     }
-  }, [updateFilters, findRestaurants])
+  }, []) // Only run once on component mount
 
   // Select the highest-voted restaurant when the session changes
   useEffect(() => {
     if (session && session.restaurants.length > 0) {
-      console.log('Session changed, finding highest voted restaurant')
+      console.log('Session changed, selecting first restaurant')
       console.log('Session ID:', session.id)
       console.log('Session restaurants:', session.restaurants.length)
       
-      // Find the restaurant with the highest votes
-      const highestVotedRestaurant = findHighestVotedRestaurant(session.restaurants)
-      if (highestVotedRestaurant) {
-        console.log('Setting selected restaurant to highest voted:', highestVotedRestaurant.name)
-        setSelectedRestaurant(highestVotedRestaurant)
+      // Just select the first restaurant
+      const firstRestaurant = session.restaurants[0]
+      if (firstRestaurant) {
+        console.log('Setting selected restaurant to first one:', firstRestaurant.name)
+        setSelectedRestaurant(firstRestaurant)
       }
     }
-  }, [session, getAllVotes])
-
-  // Function to find the restaurant with the highest votes
-  const findHighestVotedRestaurant = (restaurants: Restaurant[]): Restaurant | null => {
-    if (restaurants.length === 0) return null
-
-    console.log('Finding highest voted restaurant among:', restaurants.length, 'restaurants')
-    
-    let highestVotedRestaurant: Restaurant | null = null
-    let highestVoteCount = -1
-    
-    // Load all votes in one batch
-    const restaurantIds = restaurants.map(r => r.id)
-    
-    // Use Promise.all to handle the batch request
-    Promise.all(restaurantIds.map(id => getAllVotes(id)))
-      .then(voteResults => {
-        // Process the votes result
-        const votes: Record<string, { upvotes: number; downvotes: number }> = {}
-        
-        restaurantIds.forEach((id, index) => {
-          const voteResult = voteResults[index]
-          if (typeof voteResult === 'object' && 'upvotes' in voteResult && 'downvotes' in voteResult) {
-            votes[id] = voteResult as { upvotes: number; downvotes: number }
-          }
-        })
-        
-        for (const restaurant of restaurants) {
-          const restaurantVotes = votes[restaurant.id] || { upvotes: 0, downvotes: 0 }
-          const voteCount = restaurantVotes.upvotes - restaurantVotes.downvotes
-          
-          console.log(`Checking restaurant: ${restaurant.name}, Votes: ${voteCount} (${restaurantVotes.upvotes} up, ${restaurantVotes.downvotes} down)`)
-          
-          if (voteCount > highestVoteCount) {
-            highestVoteCount = voteCount
-            highestVotedRestaurant = restaurant
-            console.log(`New highest voted restaurant: ${restaurant.name} with ${voteCount} votes`)
-          }
-        }
-        
-        if (highestVotedRestaurant) {
-          console.log(`Selected highest voted restaurant: ${highestVotedRestaurant.name} with ${highestVoteCount} votes`)
-        } else {
-          console.log('No restaurant with votes found')
-        }
-      })
-      .catch(error => {
-        console.error('Error loading votes:', error)
-      })
-    
-    return highestVotedRestaurant
-  }
+  }, [session]) // Only depend on session changes
 
   const handleRandomRestaurant = () => {
     // If we have a session with restaurants, check if any have votes
     if (session && session.restaurants.length > 0) {
-      console.log('Session has restaurants, checking for votes')
+      console.log('Session has restaurants, selecting first one')
       console.log('Session ID:', session.id)
       console.log('Session restaurants:', session.restaurants.length)
       
-      // Find the highest voted restaurant
-      const highestVotedRestaurant = findHighestVotedRestaurant(session.restaurants)
-      
-      if (highestVotedRestaurant) {
-        console.log('Setting selected restaurant to highest voted:', highestVotedRestaurant.name)
-        setSelectedRestaurant(highestVotedRestaurant)
+      // Just select the first restaurant for now
+      const firstRestaurant = session.restaurants[0]
+      if (firstRestaurant) {
+        console.log('Setting selected restaurant to first one:', firstRestaurant.name)
+        setSelectedRestaurant(firstRestaurant)
         return
       }
     }
     
-    console.log('No restaurants with votes found, selecting random restaurant')
+    console.log('No restaurants in session, selecting random restaurant')
     // Otherwise, get a random restaurant
     const restaurant = getRandomRestaurant()
     if (restaurant) {
@@ -214,32 +162,8 @@ const RestaurantFinder = () => {
         setSession(updatedSession)
       }
       
-      // Check if this restaurant should be the selected one
-      const votesResult = await getAllVotes(restaurant.id)
-      const votes = typeof votesResult === 'object' && !Array.isArray(votesResult) && 'upvotes' in votesResult
-        ? votesResult as { upvotes: number; downvotes: number }
-        : { upvotes: 0, downvotes: 0 }
-      
-      const voteCount = votes.upvotes - votes.downvotes
-      
-      // If this restaurant has more votes than the current selected restaurant, select it
-      if (selectedRestaurant) {
-        const selectedVotesResult = await getAllVotes(selectedRestaurant.id)
-        const selectedVotes = typeof selectedVotesResult === 'object' && !Array.isArray(selectedVotesResult) && 'upvotes' in selectedVotesResult
-          ? selectedVotesResult as { upvotes: number; downvotes: number }
-          : { upvotes: 0, downvotes: 0 }
-        
-        const selectedVoteCount = selectedVotes.upvotes - selectedVotes.downvotes
-        
-        if (voteCount > selectedVoteCount) {
-          console.log('New restaurant has more votes, selecting it:', restaurant.name)
-          setSelectedRestaurant(restaurant)
-        }
-      } else {
-        // If no restaurant is selected, select this one
-        console.log('No restaurant selected, selecting this one:', restaurant.name)
-        setSelectedRestaurant(restaurant)
-      }
+      // Just select this restaurant without checking votes
+      setSelectedRestaurant(restaurant)
     } catch (err) {
       console.error('Error adding restaurant to session:', err)
       setAddError('Failed to add restaurant to session')
