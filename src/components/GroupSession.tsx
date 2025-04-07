@@ -15,19 +15,37 @@ import {
   Share as ShareIcon,
 } from '@mui/icons-material'
 import { useVotingContext } from '../hooks/VotingProvider'
-import { useParams } from 'react-router-dom'
+import { useParams, useLocation } from 'react-router-dom'
 
 export default function GroupSession() {
   const { session, getSessionUrl, loadSessionById, isLoading } = useVotingContext()
   const [showCopied, setShowCopied] = useState(false)
   const [isLoadingSession, setIsLoadingSession] = useState(false)
-  const { sessionId } = useParams<{ sessionId: string }>()
+  const { sessionId: pathSessionId } = useParams<{ sessionId: string }>()
+  const location = useLocation()
+  
+  // Get session ID from either path params or query params
+  const getSessionId = () => {
+    // Check path params first
+    if (pathSessionId) {
+      return pathSessionId
+    }
+    
+    // Then check query params
+    const urlParams = new URLSearchParams(location.search)
+    const querySessionId = urlParams.get('session')
+    return querySessionId
+  }
 
   console.log('GroupSession component, session:', session?.id)
+  console.log('Checking for session ID in URL:', getSessionId())
+  console.log('Current session:', session)
 
   useEffect(() => {
     const loadSession = async () => {
+      const sessionId = getSessionId()
       if (sessionId) {
+        console.log('Loading session from URL:', sessionId)
         setIsLoadingSession(true)
         try {
           await loadSessionById(sessionId)
@@ -39,7 +57,7 @@ export default function GroupSession() {
       }
     }
     loadSession()
-  }, [sessionId, loadSessionById])
+  }, [pathSessionId, location.search, loadSessionById])
 
   if (isLoading || isLoadingSession) {
     return (
