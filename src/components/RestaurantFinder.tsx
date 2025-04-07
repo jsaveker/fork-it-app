@@ -88,14 +88,14 @@ const RestaurantFinder = () => {
     let highestVotedRestaurant: Restaurant | null = null
     let highestVoteCount = -1
     
+    // Consider all restaurants, not just those in the current session
     for (const restaurant of restaurants) {
       const votes = getAllVotes(restaurant.id)
       const voteCount = votes.upvotes - votes.downvotes
       
       console.log(`Checking restaurant: ${restaurant.name}, Votes: ${voteCount} (${votes.upvotes} up, ${votes.downvotes} down)`)
       
-      // Consider all restaurants, not just those with votes
-      // This ensures we select the restaurant with the highest net votes
+      // Only update if this restaurant has a higher vote count
       if (voteCount > highestVoteCount) {
         highestVoteCount = voteCount
         highestVotedRestaurant = restaurant
