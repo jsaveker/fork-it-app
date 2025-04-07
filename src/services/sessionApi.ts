@@ -1,7 +1,7 @@
 import { GroupSession, Restaurant } from '../types'
 
 // Base URL for the API
-const API_BASE_URL = 'https://api.fork-it.cc'
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://api.fork-it.cc'
 
 /**
  * Create a new session

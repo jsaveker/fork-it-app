@@ -1,5 +1,8 @@
 import { Restaurant } from '../types/Restaurant';
 
+// Base URL for the API
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://api.fork-it.cc';
+
 interface NearbySearchParams {
   latitude: number;
   longitude: number;
@@ -18,7 +21,7 @@ export async function searchNearbyRestaurants({
   filters,
 }: NearbySearchParams): Promise<Restaurant[]> {
   try {
-    const response = await fetch('https://api.fork-it.cc/places/nearby', {
+    const response = await fetch(`${API_BASE_URL}/places/nearby`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
