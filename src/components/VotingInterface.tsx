@@ -9,7 +9,7 @@ import {
 } from '@mui/material'
 import ThumbUpIcon from '@mui/icons-material/ThumbUp'
 import ThumbDownIcon from '@mui/icons-material/ThumbDown'
-import { useVoting } from '../hooks/useVoting'
+import { useVotingContext } from '../hooks/VotingProvider'
 import { Restaurant } from '../types/Restaurant'
 
 interface VotingInterfaceProps {
@@ -22,7 +22,7 @@ interface VoteCount {
 }
 
 export const VotingInterface: React.FC<VotingInterfaceProps> = ({ restaurant }) => {
-  const { handleVote, getVotes, session, isLoading: sessionLoading } = useVoting()
+  const { handleVote, getVotes, session, isLoading: sessionLoading } = useVotingContext()
   const [votes, setVotes] = useState<VoteCount>({ upvotes: 0, downvotes: 0 })
   const [loading, setLoading] = useState(false)
 

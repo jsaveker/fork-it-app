@@ -4,6 +4,7 @@ import { ThemeProvider, createTheme, CssBaseline } from '@mui/material'
 import { BrowserRouter } from 'react-router-dom'
 import { LocationProvider } from './hooks/useLocation'
 import { RestaurantsProvider } from './hooks/useRestaurants'
+import { VotingProvider } from './hooks/VotingProvider'
 import App from './App.tsx'
 import './index.css'
 
@@ -52,10 +53,12 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
     <BrowserRouter>
       <LocationProvider>
         <RestaurantsProvider>
-          <ThemeProvider theme={theme}>
-            <CssBaseline />
-            <App />
-          </ThemeProvider>
+          <VotingProvider>
+            <ThemeProvider theme={theme}>
+              <CssBaseline />
+              <App />
+            </ThemeProvider>
+          </VotingProvider>
         </RestaurantsProvider>
       </LocationProvider>
     </BrowserRouter>

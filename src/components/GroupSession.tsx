@@ -13,11 +13,11 @@ import {
   ContentCopy as CopyIcon,
   Share as ShareIcon,
 } from '@mui/icons-material'
-import { useVoting } from '../hooks/useVoting'
+import { useVotingContext } from '../hooks/VotingProvider'
 import { useParams } from 'react-router-dom'
 
 export default function GroupSession() {
-  const { session, getSessionUrl, loadSessionById } = useVoting()
+  const { session, getSessionUrl, loadSessionById } = useVotingContext()
   const [showCopied, setShowCopied] = useState(false)
   const [isVisible, setIsVisible] = useState(false)
   const { sessionId } = useParams<{ sessionId: string }>()

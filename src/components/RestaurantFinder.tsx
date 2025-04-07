@@ -16,7 +16,7 @@ import LoadingSpinner from './LoadingSpinner'
 import ErrorDisplay from './ErrorDisplay'
 import { useLocation } from '../hooks/useLocation'
 import { useRestaurants } from '../hooks/useRestaurants'
-import { useVoting } from '../hooks/useVoting'
+import { useVotingContext } from '../hooks/VotingProvider'
 import { addRestaurant } from '../services/sessionApi'
 import { FilterOptions, Restaurant } from '../types'
 
@@ -34,7 +34,7 @@ const RestaurantFinder = () => {
     updateFilters,
   } = useRestaurants()
   
-  const { session, error: sessionError, loadSessionById, getAllVotes, setSession, createSession, getSessionUrl } = useVoting()
+  const { session, error: sessionError, loadSessionById, getAllVotes, setSession, createSession, getSessionUrl } = useVotingContext()
   const [addingRestaurant, setAddingRestaurant] = useState(false)
   const [addError, setAddError] = useState<string | null>(null)
   const [showCopyMessage, setShowCopyMessage] = useState(false)
