@@ -16,6 +16,48 @@ export default function FilterPanel({ filters, onChange }: FilterPanelProps) {
     setLocalPriceLevel(filters.priceLevel[0])
   }, [filters.priceLevel])
 
+  // Update URL when filters change
+  useEffect(() => {
+    const updateUrlWithFilters = () => {
+      const url = new URL(window.location.href)
+      const params = new URLSearchParams(url.search)
+      
+      // Update price parameter
+      if (filters.priceLevel.length > 0) {
+        params.set('price', filters.priceLevel.join(','))
+      } else {
+        params.delete('price')
+      }
+      
+      // Update distance parameter
+      if (filters.distance) {
+        params.set('distance', filters.distance.toString())
+      } else {
+        params.delete('distance')
+      }
+      
+      // Update rating parameter
+      if (filters.rating) {
+        params.set('rating', filters.rating.toString())
+      } else {
+        params.delete('rating')
+      }
+      
+      // Update cuisine types parameter
+      if (filters.cuisineTypes && filters.cuisineTypes.length > 0) {
+        params.set('cuisine', filters.cuisineTypes.join(','))
+      } else {
+        params.delete('cuisine')
+      }
+      
+      // Update URL without reloading the page
+      const newUrl = `${url.pathname}?${params.toString()}`
+      window.history.replaceState({}, '', newUrl)
+    }
+    
+    updateUrlWithFilters()
+  }, [filters])
+
   const handleDistanceChange = (_event: Event, value: number | number[]) => {
     onChange({ distance: value as number })
   }
