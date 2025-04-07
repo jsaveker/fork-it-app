@@ -1,60 +1,52 @@
+import React, { useEffect, useState } from 'react'
 import {
   Box,
   IconButton,
   Typography,
 } from '@mui/material'
-import {
-  ThumbUp as ThumbUpIcon,
-  ThumbDown as ThumbDownIcon,
-} from '@mui/icons-material'
-import { useVoting } from '../hooks/useVoting'
-import { Restaurant } from '../types'
+import ThumbUpIcon from '@mui/icons-material/ThumbUp'
+import ThumbDownIcon from '@mui/icons-material/ThumbDown'
+import { useVoting, VoteCount } from '../hooks/useVoting'
+import { Restaurant } from '../types/Restaurant'
 
 interface VotingInterfaceProps {
   restaurant: Restaurant
 }
 
-export default function VotingInterface({ restaurant }: VotingInterfaceProps) {
-  const { userId, handleVote, getVotes, getAllVotes, session } = useVoting()
-  const votes = getVotes(restaurant.id)
-  const allVotes = getAllVotes(restaurant.id)
+export const VotingInterface: React.FC<VotingInterfaceProps> = ({ restaurant }) => {
+  const { userId, handleVote, getVotes } = useVoting()
+  const [votes, setVotes] = useState<VoteCount>({ upvotes: 0, downvotes: 0 })
 
-  const hasUpvoted = votes?.upvotes.includes(userId) || false
-  const hasDownvoted = votes?.downvotes.includes(userId) || false
+  useEffect(() => {
+    const loadVotes = async () => {
+      const voteCount = await getVotes(restaurant.id)
+      setVotes(voteCount)
+    }
+    loadVotes()
+  }, [restaurant.id, getVotes])
 
-  const handleVoteClick = (isUpvote: boolean) => {
-    console.log(`Voting ${isUpvote ? 'up' : 'down'} on restaurant:`, restaurant.id)
-    console.log('Current session:', session?.id)
-    
-    // Call handleVote directly - it will create a session if needed
-    handleVote(restaurant.id, isUpvote)
+  const handleUpvote = async () => {
+    await handleVote(restaurant.id, 'up')
+    const voteCount = await getVotes(restaurant.id)
+    setVotes(voteCount)
+  }
+
+  const handleDownvote = async () => {
+    await handleVote(restaurant.id, 'down')
+    const voteCount = await getVotes(restaurant.id)
+    setVotes(voteCount)
   }
 
   return (
-    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-      <Box sx={{ display: 'flex', alignItems: 'center' }}>
-        <IconButton
-          onClick={() => handleVoteClick(true)}
-          color={hasUpvoted ? 'primary' : 'default'}
-        >
-          <ThumbUpIcon />
-        </IconButton>
-        <Typography variant="body2" sx={{ ml: 1, minWidth: '20px', textAlign: 'center' }}>
-          {allVotes.upvotes}
-        </Typography>
-      </Box>
-
-      <Box sx={{ display: 'flex', alignItems: 'center' }}>
-        <IconButton
-          onClick={() => handleVoteClick(false)}
-          color={hasDownvoted ? 'primary' : 'default'}
-        >
-          <ThumbDownIcon />
-        </IconButton>
-        <Typography variant="body2" sx={{ ml: 1, minWidth: '20px', textAlign: 'center' }}>
-          {allVotes.downvotes}
-        </Typography>
-      </Box>
+    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+      <IconButton onClick={handleUpvote} color="primary">
+        <ThumbUpIcon />
+      </IconButton>
+      <Typography>{votes.upvotes}</Typography>
+      <IconButton onClick={handleDownvote} color="error">
+        <ThumbDownIcon />
+      </IconButton>
+      <Typography>{votes.downvotes}</Typography>
     </Box>
   )
 } 
