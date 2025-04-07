@@ -15,7 +15,7 @@ export const useVoting = () => {
   const [error, setError] = useState<string | null>(null)
   const [votesCache, setVotesCache] = useState<Record<string, VoteCount>>({})
   const [isLoading, setIsLoading] = useState(false)
-  const [userId, setUserId] = useState<string | null>(null)
+  const [userId] = useState<string | null>(null)
 
   // Load session by ID
   const loadSessionById = async (sessionId: string) => {
@@ -52,7 +52,7 @@ export const useVoting = () => {
   const handleVote = async (restaurantId: string, voteType: 'up' | 'down') => {
     if (voteType === 'up') {
       await voteUp(restaurantId)
-    } else {
+    } else if (voteType === 'down') {
       await voteDown(restaurantId)
     }
   }
