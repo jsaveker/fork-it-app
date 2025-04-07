@@ -53,65 +53,50 @@ const RestaurantFinder = () => {
   // Check for session ID in URL and load session if needed
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search)
-    const sessionId = urlParams.get('session')
     
-    console.log('Checking for session ID in URL:', sessionId)
-    console.log('Current session:', session?.id)
+    // Apply filter parameters from URL
+    const price = urlParams.get('price')
+    const distance = urlParams.get('distance')
+    const rating = urlParams.get('rating')
+    const cuisine = urlParams.get('cuisine')
     
-    if (sessionId && (!session || session.id !== sessionId)) {
-      console.log('Loading session from URL:', sessionId)
-      loadSessionById(sessionId)
-        .then(loadedSession => {
-          console.log('Session loaded from URL:', loadedSession)
-          
-          // Apply filter parameters from URL
-          const price = urlParams.get('price')
-          const distance = urlParams.get('distance')
-          const rating = urlParams.get('rating')
-          const cuisine = urlParams.get('cuisine')
-          
-          const newFilters: Partial<FilterOptions> = {}
-          
-          if (price) {
-            const priceLevels = price.split(',').map(p => parseInt(p, 10))
-            if (priceLevels.length > 0) {
-              newFilters.priceLevel = priceLevels
-            }
-          }
-          
-          if (distance) {
-            const distanceValue = parseFloat(distance)
-            if (!isNaN(distanceValue)) {
-              newFilters.distance = distanceValue
-            }
-          }
-          
-          if (rating) {
-            const ratingValue = parseFloat(rating)
-            if (!isNaN(ratingValue)) {
-              newFilters.rating = ratingValue
-            }
-          }
-          
-          if (cuisine) {
-            const cuisineTypes = cuisine.split(',')
-            if (cuisineTypes.length > 0) {
-              newFilters.cuisineTypes = cuisineTypes
-            }
-          }
-          
-          // Apply the filters if any were found in the URL
-          if (Object.keys(newFilters).length > 0) {
-            console.log('Applying filters from URL:', newFilters)
-            updateFilters(newFilters)
-            findRestaurants(newFilters)
-          }
-        })
-        .catch(err => {
-          console.error('Error loading session from URL:', err)
-        })
+    const newFilters: Partial<FilterOptions> = {}
+    
+    if (price) {
+      const priceLevels = price.split(',').map(p => parseInt(p, 10))
+      if (priceLevels.length > 0) {
+        newFilters.priceLevel = priceLevels
+      }
     }
-  }, [session, loadSessionById, updateFilters, findRestaurants])
+    
+    if (distance) {
+      const distanceValue = parseFloat(distance)
+      if (!isNaN(distanceValue)) {
+        newFilters.distance = distanceValue
+      }
+    }
+    
+    if (rating) {
+      const ratingValue = parseFloat(rating)
+      if (!isNaN(ratingValue)) {
+        newFilters.rating = ratingValue
+      }
+    }
+    
+    if (cuisine) {
+      const cuisineTypes = cuisine.split(',')
+      if (cuisineTypes.length > 0) {
+        newFilters.cuisineTypes = cuisineTypes
+      }
+    }
+    
+    // Apply the filters if any were found in the URL
+    if (Object.keys(newFilters).length > 0) {
+      console.log('Applying filters from URL:', newFilters)
+      updateFilters(newFilters)
+      findRestaurants(newFilters)
+    }
+  }, [updateFilters, findRestaurants])
 
   // Select the highest-voted restaurant when the session changes
   useEffect(() => {
