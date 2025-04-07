@@ -34,10 +34,11 @@ const RestaurantFinder = () => {
     updateFilters,
   } = useRestaurants()
   
-  const { session, error: sessionError, loadSessionById, getAllVotes, setSession } = useVoting()
+  const { session, error: sessionError, loadSessionById, getAllVotes, setSession, createSession } = useVoting()
   const [addingRestaurant, setAddingRestaurant] = useState(false)
   const [addError, setAddError] = useState<string | null>(null)
   const [showCopyMessage, setShowCopyMessage] = useState(false)
+  const [creatingSession, setCreatingSession] = useState(false)
 
   const [showFilters, setShowFilters] = useState(false)
 
@@ -218,6 +219,23 @@ const RestaurantFinder = () => {
     findRestaurants(newFilters)
   }
 
+  const handleCreateSession = async () => {
+    setCreatingSession(true)
+    try {
+      const newSession = await createSession('Restaurant Voting Session')
+      if (newSession && selectedRestaurant) {
+        // If we have a selected restaurant, add it to the new session
+        await addRestaurantToSession(selectedRestaurant)
+      }
+      setShowCopyMessage(true)
+    } catch (error) {
+      console.error('Error creating session:', error)
+      setAddError('Failed to create session')
+    } finally {
+      setCreatingSession(false)
+    }
+  }
+
   if (locationError) {
     return (
       <ErrorDisplay
@@ -246,7 +264,34 @@ const RestaurantFinder = () => {
 
   return (
     <Container maxWidth="lg" sx={{ py: 4 }}>
-      <Box sx={{ mb: 4, display: 'flex', justifyContent: 'center', flexDirection: 'column', alignItems: 'center' }}>
+      <Box sx={{ mb: 4, display: 'flex', justifyContent: 'center', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
+        {!session && (
+          <motion.div
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+          >
+            <Button
+              variant="contained"
+              color="secondary"
+              size="large"
+              onClick={handleCreateSession}
+              disabled={creatingSession}
+              sx={{
+                py: 2,
+                px: 4,
+                fontSize: '1.2rem',
+                borderRadius: 3,
+              }}
+            >
+              {creatingSession ? (
+                <CircularProgress size={24} color="inherit" />
+              ) : (
+                'Start Voting Session'
+              )}
+            </Button>
+          </motion.div>
+        )}
+        
         <motion.div
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
@@ -261,7 +306,6 @@ const RestaurantFinder = () => {
               px: 4,
               fontSize: '1.2rem',
               borderRadius: 3,
-              mb: 2,
             }}
           >
             {addingRestaurant ? (

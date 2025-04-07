@@ -17,6 +17,40 @@ export const useVoting = () => {
   const [isLoading, setIsLoading] = useState(false)
   const [userId] = useState<string | null>(null)
 
+  // Create a new session
+  const createSession = async (name: string = 'New Session') => {
+    try {
+      setIsLoading(true)
+      const response = await fetch(`/api/sessions`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ name }),
+      })
+      
+      if (!response.ok) {
+        throw new Error('Failed to create session')
+      }
+      
+      const data = await response.json()
+      setSession(data.session)
+      
+      // Update URL with session ID
+      const url = new URL(window.location.href)
+      url.searchParams.set('session', data.session.id)
+      window.history.pushState({}, '', url)
+      
+      return data.session
+    } catch (err) {
+      setError('Failed to create session')
+      console.error('Error creating session:', err)
+      return null
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
   // Load session by ID
   const loadSessionById = async (sessionId: string) => {
     try {
@@ -87,15 +121,15 @@ export const useVoting = () => {
   }
 
   // Handle vote action
-  const handleVote = async (restaurantId: string, voteType: 'up' | 'down') => {
+  const handleVote = async (restaurantId: string, isUpvote: boolean) => {
     if (!session) {
       console.error('Cannot vote without an active session')
       return
     }
     
-    if (voteType === 'up') {
+    if (isUpvote) {
       await voteUp(restaurantId)
-    } else if (voteType === 'down') {
+    } else {
       await voteDown(restaurantId)
     }
   }
@@ -237,6 +271,7 @@ export const useVoting = () => {
     setSession,
     getSessionUrl,
     getVotes,
-    handleVote
+    handleVote,
+    createSession
   }
 } 
