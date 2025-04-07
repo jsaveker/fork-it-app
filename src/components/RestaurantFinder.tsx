@@ -34,7 +34,7 @@ const RestaurantFinder = () => {
     updateFilters,
   } = useRestaurants()
   
-  const { session, error: sessionError, loadSessionById, getAllVotes, setSession, createSession } = useVoting()
+  const { session, error: sessionError, loadSessionById, getAllVotes, setSession, createSession, getSessionUrl } = useVoting()
   const [addingRestaurant, setAddingRestaurant] = useState(false)
   const [addError, setAddError] = useState<string | null>(null)
   const [showCopyMessage, setShowCopyMessage] = useState(false)
@@ -61,6 +61,12 @@ const RestaurantFinder = () => {
     if (sessionId && (!session || session.id !== sessionId)) {
       console.log('Loading session from URL:', sessionId)
       loadSessionById(sessionId)
+        .then(loadedSession => {
+          console.log('Session loaded from URL:', loadedSession)
+        })
+        .catch(err => {
+          console.error('Error loading session from URL:', err)
+        })
     }
   }, [session, loadSessionById])
 
@@ -222,12 +228,52 @@ const RestaurantFinder = () => {
   const handleCreateSession = async () => {
     setCreatingSession(true)
     try {
+      console.log('Creating new session...')
       const newSession = await createSession('Restaurant Voting Session')
+      console.log('New session created:', newSession)
+      
       if (newSession && selectedRestaurant) {
         // If we have a selected restaurant, add it to the new session
+        console.log('Adding selected restaurant to session:', selectedRestaurant)
         await addRestaurantToSession(selectedRestaurant)
       }
-      setShowCopyMessage(true)
+      
+      // Copy the session URL to the clipboard
+      const sessionUrl = getSessionUrl()
+      console.log('Session URL:', sessionUrl)
+      if (sessionUrl) {
+        console.log('Copying session URL to clipboard:', sessionUrl)
+        try {
+          navigator.clipboard.writeText(sessionUrl)
+            .then(() => {
+              console.log('Session URL copied to clipboard successfully')
+              setShowCopyMessage(true)
+            })
+            .catch(err => {
+              console.error('Error copying to clipboard:', err)
+              // Fallback for clipboard API not available
+              const textArea = document.createElement('textarea')
+              textArea.value = sessionUrl
+              document.body.appendChild(textArea)
+              textArea.select()
+              document.execCommand('copy')
+              document.body.removeChild(textArea)
+              console.log('Session URL copied to clipboard using fallback method')
+              setShowCopyMessage(true)
+            })
+        } catch (err) {
+          console.error('Error with clipboard API:', err)
+          // Fallback for clipboard API not available
+          const textArea = document.createElement('textarea')
+          textArea.value = sessionUrl
+          document.body.appendChild(textArea)
+          textArea.select()
+          document.execCommand('copy')
+          document.body.removeChild(textArea)
+          console.log('Session URL copied to clipboard using fallback method')
+          setShowCopyMessage(true)
+        }
+      }
     } catch (error) {
       console.error('Error creating session:', error)
       setAddError('Failed to create session')

@@ -21,6 +21,7 @@ export const useVoting = () => {
   const createSession = async (name: string = 'New Session') => {
     try {
       setIsLoading(true)
+      console.log('Creating session with name:', name)
       const response = await fetch(`https://api.fork-it.cc/sessions`, {
         method: 'POST',
         headers: {
@@ -34,6 +35,7 @@ export const useVoting = () => {
       }
       
       const data = await response.json()
+      console.log('Session created successfully:', data)
       setSession(data)
       
       // Update URL with session ID
@@ -55,11 +57,13 @@ export const useVoting = () => {
   const loadSessionById = async (sessionId: string) => {
     try {
       setIsLoading(true)
+      console.log('Loading session with ID:', sessionId)
       const response = await fetch(`https://api.fork-it.cc/sessions/${sessionId}`)
       if (!response.ok) {
         throw new Error('Failed to load session')
       }
       const data = await response.json()
+      console.log('Session loaded successfully:', data)
       setSession(data)
       
       // Initialize votes cache from session data
@@ -77,9 +81,12 @@ export const useVoting = () => {
         })
         setVotesCache(initialVotes)
       }
+      
+      return data
     } catch (err) {
       setError('Failed to load session')
       console.error('Error loading session:', err)
+      return null
     } finally {
       setIsLoading(false)
     }
@@ -87,8 +94,11 @@ export const useVoting = () => {
 
   // Get session URL
   const getSessionUrl = (): string => {
+    console.log('Getting session URL, session:', session)
     if (!session) return ''
-    return `${window.location.origin}?session=${session.id}`
+    const url = `${window.location.origin}?session=${session.id}`
+    console.log('Generated session URL:', url)
+    return url
   }
 
   // Get votes for a restaurant
