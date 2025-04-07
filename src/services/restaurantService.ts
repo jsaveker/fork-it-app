@@ -1,4 +1,4 @@
-import { GroupSession } from '../types/GroupSession'
+import { GroupSession } from '../types'
 
 // Get upvotes for a restaurant
 export const getUpvotes = async (restaurantId: string): Promise<number> => {

@@ -18,7 +18,7 @@ import { useLocation } from '../hooks/useLocation'
 import { useRestaurants } from '../hooks/useRestaurants'
 import { useVoting } from '../hooks/useVoting'
 import { addRestaurant } from '../services/sessionApi'
-import { FilterOptions, Restaurant } from '../types'
+import { FilterOptions, Restaurant, GroupSession } from '../types'
 
 const RestaurantFinder = () => {
   const { location, loading: locationLoading, error: locationError } = useLocation()
@@ -173,7 +173,16 @@ const RestaurantFinder = () => {
       
       // Update the session state with the updated session
       if (updatedSession) {
-        setSession(updatedSession)
+        // Cast the updated session to the GroupSession type from the index file
+        const typedSession: GroupSession = {
+          id: updatedSession.id,
+          name: updatedSession.name,
+          restaurants: updatedSession.restaurants,
+          votes: updatedSession.votes,
+          createdAt: updatedSession.createdAt,
+          expires: updatedSession.expires
+        }
+        setSession(typedSession)
       }
       
       // Check if this restaurant should be the selected one
