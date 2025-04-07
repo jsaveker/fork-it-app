@@ -1,7 +1,10 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { GroupSession, RestaurantVote } from '../types'
 import { Restaurant } from '../types/Restaurant'
 import { getUpvotes, getDownvotes, upvoteRestaurant, downvoteRestaurant } from '../services/restaurantService.js'
+
+// Base URL for the API
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://api.fork-it.cc'
 
 export interface VoteCount {
   upvotes: number
@@ -22,7 +25,7 @@ export const useVoting = () => {
     try {
       setIsLoading(true)
       console.log('Creating session with name:', name)
-      const response = await fetch(`https://api.fork-it.cc/sessions`, {
+      const response = await fetch(`${API_BASE_URL}/sessions`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -58,7 +61,7 @@ export const useVoting = () => {
     try {
       setIsLoading(true)
       console.log('Loading session with ID:', sessionId)
-      const response = await fetch(`https://api.fork-it.cc/sessions/${sessionId}`)
+      const response = await fetch(`${API_BASE_URL}/sessions/${sessionId}`)
       if (!response.ok) {
         throw new Error('Failed to load session')
       }
