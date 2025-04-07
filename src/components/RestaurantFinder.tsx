@@ -19,7 +19,6 @@ import { useRestaurants } from '../hooks/useRestaurants'
 import { useVoting } from '../hooks/useVoting'
 import { addRestaurant } from '../services/sessionApi'
 import { FilterOptions, Restaurant } from '../types'
-import GroupSession from './GroupSession'
 
 const RestaurantFinder = () => {
   const { location, loading: locationLoading, error: locationError } = useLocation()
@@ -217,7 +216,6 @@ const RestaurantFinder = () => {
 
   return (
     <Container maxWidth="lg" sx={{ py: 4 }}>
-      <GroupSession />
       <Box sx={{ mb: 4, display: 'flex', justifyContent: 'center', flexDirection: 'column', alignItems: 'center' }}>
         <motion.div
           whileHover={{ scale: 1.05 }}
