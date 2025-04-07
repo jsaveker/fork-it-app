@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { GroupSession } from '../types/GroupSession'
+import { GroupSession } from '../types'
 import { Restaurant } from '../types/Restaurant'
 import { getUpvotes, getDownvotes, upvoteRestaurant, downvoteRestaurant } from '../services/restaurantService'
 
