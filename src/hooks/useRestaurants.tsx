@@ -1,7 +1,7 @@
 import { createContext, useContext, useState, ReactNode } from 'react'
 import { Restaurant, FilterOptions } from '../types'
 import { useLocation } from './useLocation'
-import { searchNearbyRestaurants } from '../services/placesApi'
+import { searchNearbyRestaurants } from '../services/googlePlacesApi'
 
 interface RestaurantsContextType {
   restaurants: Restaurant[];
