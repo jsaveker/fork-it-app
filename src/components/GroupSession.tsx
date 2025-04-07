@@ -32,12 +32,6 @@ export default function GroupSession() {
 
   useEffect(() => {
     if (session) {
-      setSession(session)
-    }
-  }, [session, setSession])
-
-  useEffect(() => {
-    if (session) {
       setIsVisible(true)
     }
   }, [session])

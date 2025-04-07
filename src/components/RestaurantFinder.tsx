@@ -161,7 +161,10 @@ const RestaurantFinder = () => {
   }
   
   const addRestaurantToSession = async (restaurant: Restaurant) => {
-    if (!session) return
+    if (!session) {
+      console.error('Cannot add restaurant without an active session')
+      return
+    }
     
     setAddingRestaurant(true)
     setAddError(null)
@@ -173,16 +176,7 @@ const RestaurantFinder = () => {
       
       // Update the session state with the updated session
       if (updatedSession) {
-        // Cast the updated session to the GroupSession type from the index file
-        const typedSession: GroupSession = {
-          id: updatedSession.id,
-          name: updatedSession.name,
-          restaurants: updatedSession.restaurants,
-          votes: updatedSession.votes,
-          createdAt: updatedSession.createdAt,
-          expires: updatedSession.expires
-        }
-        setSession(typedSession)
+        setSession(updatedSession)
       }
       
       // Check if this restaurant should be the selected one
