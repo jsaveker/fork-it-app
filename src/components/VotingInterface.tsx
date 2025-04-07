@@ -22,12 +22,13 @@ interface VoteCount {
 }
 
 export const VotingInterface: React.FC<VotingInterfaceProps> = ({ restaurant }) => {
-  const { handleVote, getVotes, session } = useVoting()
+  const { handleVote, getVotes, session, isLoading: sessionLoading } = useVoting()
   const [votes, setVotes] = useState<VoteCount>({ upvotes: 0, downvotes: 0 })
   const [loading, setLoading] = useState(false)
 
   console.log('VotingInterface - Session state:', session)
   console.log('VotingInterface - Restaurant:', restaurant)
+  console.log('VotingInterface - Session loading:', sessionLoading)
 
   useEffect(() => {
     const loadVotes = async () => {
@@ -84,6 +85,16 @@ export const VotingInterface: React.FC<VotingInterfaceProps> = ({ restaurant }) 
     } finally {
       setLoading(false)
     }
+  }
+
+  // Show loading state while session is being initialized
+  if (sessionLoading) {
+    return (
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+        <CircularProgress size={24} />
+        <Typography variant="body2">Initializing session...</Typography>
+      </Box>
+    )
   }
 
   return (
