@@ -55,23 +55,15 @@ export const useVoting = () => {
       if (loadedSession) {
         console.log('Session loaded successfully:', loadedSession.id)
         
-        // If the server returned a different session ID, preserve the original one
-        if (loadedSession.id !== sessionId) {
-          console.log('Server returned different session ID, preserving original:', sessionId)
-          // Create a new session object with the original ID but updated data
-          const preservedSession = {
-            ...loadedSession,
-            id: sessionId
-          }
-          setSession(preservedSession)
-          // Store in localStorage
-          localStorage.setItem('current_session', JSON.stringify(preservedSession))
-        } else {
-          // If the session ID is the same, just update the session
-          setSession(loadedSession)
-          // Store in localStorage
-          localStorage.setItem('current_session', JSON.stringify(loadedSession))
+        // Always preserve the original session ID
+        console.log('Preserving original session ID:', sessionId)
+        const preservedSession = {
+          ...loadedSession,
+          id: sessionId
         }
+        setSession(preservedSession)
+        // Store in localStorage
+        localStorage.setItem('current_session', JSON.stringify(preservedSession))
         
         // Don't update the URL here - we want to keep the same session ID
       } else {
@@ -136,23 +128,15 @@ export const useVoting = () => {
           if (loadedSession) {
             console.log('Successfully loaded session:', loadedSession.id)
             
-            // If the server returned a different session ID, preserve the original one
-            if (loadedSession.id !== sessionId) {
-              console.log('Server returned different session ID, preserving original:', sessionId)
-              // Create a new session object with the original ID but updated data
-              const preservedSession = {
-                ...loadedSession,
-                id: sessionId
-              }
-              setSession(preservedSession)
-              // Store in localStorage
-              localStorage.setItem('current_session', JSON.stringify(preservedSession))
-            } else {
-              // If the session ID is the same, just update the session
-              setSession(loadedSession)
-              // Store in localStorage
-              localStorage.setItem('current_session', JSON.stringify(loadedSession))
+            // Always preserve the original session ID
+            console.log('Preserving original session ID:', sessionId)
+            const preservedSession = {
+              ...loadedSession,
+              id: sessionId
             }
+            setSession(preservedSession)
+            // Store in localStorage
+            localStorage.setItem('current_session', JSON.stringify(preservedSession))
             
             // Don't update the URL here - we want to keep the same session ID
           } else {
@@ -197,18 +181,21 @@ export const useVoting = () => {
         const newSession = await createSession('Default Session')
         console.log('New session created:', newSession.id)
         
+        // Store the original session ID
+        const originalSessionId = newSession.id
+        
         // Update the session state
         setSession(newSession)
         // Store in localStorage
         localStorage.setItem('current_session', JSON.stringify(newSession))
         
         // Update the URL with the new session ID
-        updateUrlWithSessionId(newSession.id)
+        updateUrlWithSessionId(originalSessionId)
         
         // Now use the newly created session for voting
         console.log(`Voting ${isUpvote ? 'up' : 'down'} on restaurant:`, restaurantId)
-        console.log('Using newly created session ID:', newSession.id)
-        const updatedSession = await voteApi(newSession.id, restaurantId, userId, isUpvote)
+        console.log('Using newly created session ID:', originalSessionId)
+        const updatedSession = await voteApi(originalSessionId, restaurantId, userId, isUpvote)
         console.log('Vote successful, updating session:', updatedSession.id)
         
         // Log the updated vote counts
@@ -217,21 +204,15 @@ export const useVoting = () => {
           console.log(`Updated votes for restaurant ${restaurantId}: ${updatedVote.upvotes.length} upvotes, ${updatedVote.downvotes.length} downvotes`)
         }
         
-        // IMPORTANT: Preserve the original session ID even if the server returns a different one
-        if (updatedSession.id !== newSession.id) {
-          console.log('Server returned different session ID, preserving original:', newSession.id)
-          const preservedSession = {
-            ...updatedSession,
-            id: newSession.id
-          }
-          setSession(preservedSession)
-          // Store in localStorage
-          localStorage.setItem('current_session', JSON.stringify(preservedSession))
-        } else {
-          setSession(updatedSession)
-          // Store in localStorage
-          localStorage.setItem('current_session', JSON.stringify(updatedSession))
+        // IMPORTANT: Always preserve the original session ID
+        console.log('Preserving original session ID:', originalSessionId)
+        const preservedSession = {
+          ...updatedSession,
+          id: originalSessionId
         }
+        setSession(preservedSession)
+        // Store in localStorage
+        localStorage.setItem('current_session', JSON.stringify(preservedSession))
         
         return
       }
@@ -252,23 +233,15 @@ export const useVoting = () => {
         console.log(`Updated votes for restaurant ${restaurantId}: ${updatedVote.upvotes.length} upvotes, ${updatedVote.downvotes.length} downvotes`)
       }
       
-      // IMPORTANT: Preserve the original session ID even if the server returns a different one
-      if (updatedSession.id !== originalSessionId) {
-        console.log('Server returned different session ID, preserving original:', originalSessionId)
-        // Create a new session object with the original ID but updated votes
-        const preservedSession = {
-          ...updatedSession,
-          id: originalSessionId
-        }
-        setSession(preservedSession)
-        // Store in localStorage
-        localStorage.setItem('current_session', JSON.stringify(preservedSession))
-      } else {
-        // If the session ID is the same, just update the session
-        setSession(updatedSession)
-        // Store in localStorage
-        localStorage.setItem('current_session', JSON.stringify(updatedSession))
+      // IMPORTANT: Always preserve the original session ID
+      console.log('Preserving original session ID:', originalSessionId)
+      const preservedSession = {
+        ...updatedSession,
+        id: originalSessionId
       }
+      setSession(preservedSession)
+      // Store in localStorage
+      localStorage.setItem('current_session', JSON.stringify(preservedSession))
       
       // Don't update the URL here - we want to keep the same session ID
     } catch (err) {
