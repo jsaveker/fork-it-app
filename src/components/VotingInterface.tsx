@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useCallback } from 'react'
 import {
   Box,
   IconButton,
@@ -25,65 +25,66 @@ export const VotingInterface: React.FC<VotingInterfaceProps> = ({ restaurant }) 
   const { handleVote, getVotes, session, isLoading: sessionLoading } = useVotingContext()
   const [votes, setVotes] = useState<VoteCount>({ upvotes: 0, downvotes: 0 })
   const [loading, setLoading] = useState(false)
+  const [voteInProgress, setVoteInProgress] = useState(false)
 
   console.log('VotingInterface - Session state:', session)
   console.log('VotingInterface - Restaurant:', restaurant)
   console.log('VotingInterface - Session loading:', sessionLoading)
 
-  useEffect(() => {
-    const loadVotes = async () => {
-      try {
-        setLoading(true)
-        console.log('Loading votes for restaurant:', restaurant.id)
-        const voteCount = await getVotes(restaurant.id)
-        console.log('Votes loaded for restaurant:', restaurant.id, voteCount)
-        setVotes(voteCount)
-      } catch (error) {
-        console.error('Error loading votes:', error)
-      } finally {
-        setLoading(false)
-      }
+  // Memoize the loadVotes function to prevent unnecessary re-renders
+  const loadVotes = useCallback(async () => {
+    if (!session) return
+    
+    try {
+      console.log('Loading votes for restaurant:', restaurant.id)
+      const voteCount = await getVotes(restaurant.id)
+      console.log('Votes loaded for restaurant:', restaurant.id, voteCount)
+      setVotes(voteCount)
+    } catch (error) {
+      console.error('Error loading votes:', error)
     }
-    loadVotes()
-  }, [restaurant.id, getVotes])
+  }, [restaurant.id, getVotes, session])
+
+  // Load votes when restaurant or session changes
+  useEffect(() => {
+    if (session) {
+      loadVotes()
+    }
+  }, [restaurant.id, session, loadVotes])
 
   const handleUpvote = async () => {
-    if (!session) {
-      console.error('Cannot vote without an active session')
+    if (!session || voteInProgress) {
+      console.error('Cannot vote without an active session or vote in progress')
       return
     }
     
     try {
-      setLoading(true)
+      setVoteInProgress(true)
       await handleVote(restaurant.id, true)
-      const voteCount = await getVotes(restaurant.id)
-      if (voteCount) {
-        setVotes(voteCount)
-      }
+      // Update votes directly instead of reloading
+      setVotes(prev => ({ ...prev, upvotes: prev.upvotes + 1 }))
     } catch (error) {
       console.error('Error upvoting:', error)
     } finally {
-      setLoading(false)
+      setVoteInProgress(false)
     }
   }
 
   const handleDownvote = async () => {
-    if (!session) {
-      console.error('Cannot vote without an active session')
+    if (!session || voteInProgress) {
+      console.error('Cannot vote without an active session or vote in progress')
       return
     }
     
     try {
-      setLoading(true)
+      setVoteInProgress(true)
       await handleVote(restaurant.id, false)
-      const voteCount = await getVotes(restaurant.id)
-      if (voteCount) {
-        setVotes(voteCount)
-      }
+      // Update votes directly instead of reloading
+      setVotes(prev => ({ ...prev, downvotes: prev.downvotes + 1 }))
     } catch (error) {
       console.error('Error downvoting:', error)
     } finally {
-      setLoading(false)
+      setVoteInProgress(false)
     }
   }
 
@@ -112,9 +113,9 @@ export const VotingInterface: React.FC<VotingInterfaceProps> = ({ restaurant }) 
               <IconButton 
                 onClick={handleUpvote} 
                 color="primary" 
-                disabled={!session || loading}
+                disabled={!session || voteInProgress}
               >
-                {loading ? <CircularProgress size={24} /> : <ThumbUpIcon />}
+                {voteInProgress ? <CircularProgress size={24} /> : <ThumbUpIcon />}
               </IconButton>
             </span>
           </Tooltip>
@@ -124,9 +125,9 @@ export const VotingInterface: React.FC<VotingInterfaceProps> = ({ restaurant }) 
               <IconButton 
                 onClick={handleDownvote} 
                 color="error" 
-                disabled={!session || loading}
+                disabled={!session || voteInProgress}
               >
-                {loading ? <CircularProgress size={24} /> : <ThumbDownIcon />}
+                {voteInProgress ? <CircularProgress size={24} /> : <ThumbDownIcon />}
               </IconButton>
             </span>
           </Tooltip>
