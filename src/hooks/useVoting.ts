@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { GroupSession, RestaurantVote } from '../types'
 import { Restaurant } from '../types/Restaurant'
-import { getUpvotes, getDownvotes, upvoteRestaurant, downvoteRestaurant } from '../services/restaurantService'
+import { getUpvotes, getDownvotes, upvoteRestaurant, downvoteRestaurant } from '../services/restaurantService.js'
 
 export interface VoteCount {
   upvotes: number
@@ -21,7 +21,7 @@ export const useVoting = () => {
   const createSession = async (name: string = 'New Session') => {
     try {
       setIsLoading(true)
-      const response = await fetch(`/api/sessions`, {
+      const response = await fetch(`https://api.fork-it.cc/sessions`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -34,14 +34,14 @@ export const useVoting = () => {
       }
       
       const data = await response.json()
-      setSession(data.session)
+      setSession(data)
       
       // Update URL with session ID
       const url = new URL(window.location.href)
-      url.searchParams.set('session', data.session.id)
+      url.searchParams.set('session', data.id)
       window.history.pushState({}, '', url)
       
-      return data.session
+      return data
     } catch (err) {
       setError('Failed to create session')
       console.error('Error creating session:', err)
@@ -55,20 +55,24 @@ export const useVoting = () => {
   const loadSessionById = async (sessionId: string) => {
     try {
       setIsLoading(true)
-      const response = await fetch(`/api/sessions/${sessionId}`)
+      const response = await fetch(`https://api.fork-it.cc/sessions/${sessionId}`)
       if (!response.ok) {
         throw new Error('Failed to load session')
       }
       const data = await response.json()
-      setSession(data.session)
+      setSession(data)
       
       // Initialize votes cache from session data
-      if (data.session && data.session.votes) {
+      if (data && data.votes) {
         const initialVotes: Record<string, VoteCount> = {}
-        data.session.votes.forEach((vote: RestaurantVote) => {
+        data.votes.forEach((vote: any) => {
+          // Handle both array and number formats for upvotes/downvotes
+          const upvotesCount = Array.isArray(vote.upvotes) ? vote.upvotes.length : vote.upvotes || 0
+          const downvotesCount = Array.isArray(vote.downvotes) ? vote.downvotes.length : vote.downvotes || 0
+          
           initialVotes[vote.restaurantId] = {
-            upvotes: vote.upvotes,
-            downvotes: vote.downvotes
+            upvotes: upvotesCount,
+            downvotes: downvotesCount
           }
         })
         setVotesCache(initialVotes)
@@ -93,9 +97,13 @@ export const useVoting = () => {
     if (session && session.votes) {
       const sessionVote = session.votes.find(vote => vote.restaurantId === restaurantId)
       if (sessionVote) {
+        // Handle both array and number formats for upvotes/downvotes
+        const upvotesCount = Array.isArray(sessionVote.upvotes) ? sessionVote.upvotes.length : sessionVote.upvotes || 0
+        const downvotesCount = Array.isArray(sessionVote.downvotes) ? sessionVote.downvotes.length : sessionVote.downvotes || 0
+        
         return {
-          upvotes: sessionVote.upvotes,
-          downvotes: sessionVote.downvotes
+          upvotes: upvotesCount,
+          downvotes: downvotesCount
         }
       }
     }
@@ -144,9 +152,13 @@ export const useVoting = () => {
       uniqueIds.forEach(id => {
         const sessionVote = session.votes.find(vote => vote.restaurantId === id)
         if (sessionVote) {
+          // Handle both array and number formats for upvotes/downvotes
+          const upvotesCount = Array.isArray(sessionVote.upvotes) ? sessionVote.upvotes.length : sessionVote.upvotes || 0
+          const downvotesCount = Array.isArray(sessionVote.downvotes) ? sessionVote.downvotes.length : sessionVote.downvotes || 0
+          
           newVotes[id] = {
-            upvotes: sessionVote.upvotes,
-            downvotes: sessionVote.downvotes
+            upvotes: upvotesCount,
+            downvotes: downvotesCount
           }
         }
       })
@@ -190,64 +202,101 @@ export const useVoting = () => {
     return batchLoadVotes(restaurantIdOrIds)
   }
 
-  // Modified vote functions to update cache
+  // Vote up a restaurant
   const voteUp = async (restaurantId: string) => {
     if (!session) {
-      console.error('Cannot vote without an active session')
-      return
+      throw new Error('No active session')
     }
     
     try {
-      setIsLoading(true)
-      const result = await upvoteRestaurant(session.id, restaurantId)
-      if (result) {
-        setSession(result)
-        
-        // Update cache
-        const currentVotes = votesCache[restaurantId] || { upvotes: 0, downvotes: 0 }
-        setVotesCache(prev => ({
-          ...prev,
-          [restaurantId]: {
-            upvotes: currentVotes.upvotes + 1,
-            downvotes: currentVotes.downvotes
+      await upvoteRestaurant(restaurantId, session.id)
+      
+      // Update votes cache
+      const currentVotes = votesCache[restaurantId] || { upvotes: 0, downvotes: 0 }
+      const newVotes = {
+        ...currentVotes,
+        upvotes: currentVotes.upvotes + 1
+      }
+      
+      setVotesCache(prev => ({ ...prev, [restaurantId]: newVotes }))
+      
+      // Update session votes
+      if (session.votes) {
+        const voteIndex = session.votes.findIndex(v => v.restaurantId === restaurantId)
+        if (voteIndex >= 0) {
+          const updatedVotes = [...session.votes]
+          const currentVote = updatedVotes[voteIndex]
+          updatedVotes[voteIndex] = {
+            ...currentVote,
+            upvotes: Array.isArray(currentVote.upvotes) 
+              ? [...currentVote.upvotes, session.id]
+              : 1
           }
-        }))
+          setSession(prev => prev ? { ...prev, votes: updatedVotes } : null)
+        } else {
+          const newVote: RestaurantVote = {
+            restaurantId,
+            upvotes: [session.id],
+            downvotes: []
+          }
+          setSession(prev => prev ? {
+            ...prev,
+            votes: [...prev.votes, newVote]
+          } : null)
+        }
       }
     } catch (err) {
-      setError('Failed to upvote restaurant')
-      console.error('Error upvoting:', err)
-    } finally {
-      setIsLoading(false)
+      console.error('Error voting up:', err)
+      throw err
     }
   }
-
+  
+  // Vote down a restaurant
   const voteDown = async (restaurantId: string) => {
     if (!session) {
-      console.error('Cannot vote without an active session')
-      return
+      throw new Error('No active session')
     }
     
     try {
-      setIsLoading(true)
-      const result = await downvoteRestaurant(session.id, restaurantId)
-      if (result) {
-        setSession(result)
-        
-        // Update cache
-        const currentVotes = votesCache[restaurantId] || { upvotes: 0, downvotes: 0 }
-        setVotesCache(prev => ({
-          ...prev,
-          [restaurantId]: {
-            upvotes: currentVotes.upvotes,
-            downvotes: currentVotes.downvotes + 1
+      await downvoteRestaurant(restaurantId, session.id)
+      
+      // Update votes cache
+      const currentVotes = votesCache[restaurantId] || { upvotes: 0, downvotes: 0 }
+      const newVotes = {
+        ...currentVotes,
+        downvotes: currentVotes.downvotes + 1
+      }
+      
+      setVotesCache(prev => ({ ...prev, [restaurantId]: newVotes }))
+      
+      // Update session votes
+      if (session.votes) {
+        const voteIndex = session.votes.findIndex(v => v.restaurantId === restaurantId)
+        if (voteIndex >= 0) {
+          const updatedVotes = [...session.votes]
+          const currentVote = updatedVotes[voteIndex]
+          updatedVotes[voteIndex] = {
+            ...currentVote,
+            downvotes: Array.isArray(currentVote.downvotes)
+              ? [...currentVote.downvotes, session.id]
+              : 1
           }
-        }))
+          setSession(prev => prev ? { ...prev, votes: updatedVotes } : null)
+        } else {
+          const newVote: RestaurantVote = {
+            restaurantId,
+            upvotes: [],
+            downvotes: [session.id]
+          }
+          setSession(prev => prev ? {
+            ...prev,
+            votes: [...prev.votes, newVote]
+          } : null)
+        }
       }
     } catch (err) {
-      setError('Failed to downvote restaurant')
-      console.error('Error downvoting:', err)
-    } finally {
-      setIsLoading(false)
+      console.error('Error voting down:', err)
+      throw err
     }
   }
 
