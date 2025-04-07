@@ -6,11 +6,16 @@ import {
 } from '@mui/material'
 import ThumbUpIcon from '@mui/icons-material/ThumbUp'
 import ThumbDownIcon from '@mui/icons-material/ThumbDown'
-import { useVoting, VoteCount } from '../hooks/useVoting'
+import { useVoting } from '../hooks/useVoting'
 import { Restaurant } from '../types/Restaurant'
 
 interface VotingInterfaceProps {
   restaurant: Restaurant
+}
+
+interface VoteCount {
+  upvotes: number
+  downvotes: number
 }
 
 export const VotingInterface: React.FC<VotingInterfaceProps> = ({ restaurant }) => {
@@ -21,7 +26,11 @@ export const VotingInterface: React.FC<VotingInterfaceProps> = ({ restaurant }) 
     const loadVotes = async () => {
       const voteCount = await getVotes(restaurant.id)
       if (voteCount) {
-        setVotes(voteCount)
+        const formattedVotes: VoteCount = {
+          upvotes: typeof voteCount.upvotes === 'number' ? voteCount.upvotes : 0,
+          downvotes: typeof voteCount.downvotes === 'number' ? voteCount.downvotes : 0
+        }
+        setVotes(formattedVotes)
       }
     }
     loadVotes()
@@ -31,7 +40,11 @@ export const VotingInterface: React.FC<VotingInterfaceProps> = ({ restaurant }) 
     await handleVote(restaurant.id, 'up')
     const voteCount = await getVotes(restaurant.id)
     if (voteCount) {
-      setVotes(voteCount)
+      const formattedVotes: VoteCount = {
+        upvotes: typeof voteCount.upvotes === 'number' ? voteCount.upvotes : 0,
+        downvotes: typeof voteCount.downvotes === 'number' ? voteCount.downvotes : 0
+      }
+      setVotes(formattedVotes)
     }
   }
 
@@ -39,7 +52,11 @@ export const VotingInterface: React.FC<VotingInterfaceProps> = ({ restaurant }) 
     await handleVote(restaurant.id, 'down')
     const voteCount = await getVotes(restaurant.id)
     if (voteCount) {
-      setVotes(voteCount)
+      const formattedVotes: VoteCount = {
+        upvotes: typeof voteCount.upvotes === 'number' ? voteCount.upvotes : 0,
+        downvotes: typeof voteCount.downvotes === 'number' ? voteCount.downvotes : 0
+      }
+      setVotes(formattedVotes)
     }
   }
 

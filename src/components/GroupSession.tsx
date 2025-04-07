@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import React, { useState, useEffect } from 'react'
 import {
   Box,
   Typography,
@@ -7,29 +7,39 @@ import {
   Divider,
   IconButton,
   Tooltip,
+  Button,
+  Alert,
 } from '@mui/material'
 import {
   ContentCopy as CopyIcon,
   Share as ShareIcon,
 } from '@mui/icons-material'
 import { useVoting } from '../hooks/useVoting'
+import { useParams } from 'react-router-dom'
 
 export default function GroupSession() {
-  const { session, getSessionUrl } = useVoting()
+  const { session, getSessionUrl, loadSessionById, setSession } = useVoting()
   const [showCopied, setShowCopied] = useState(false)
   const [isVisible, setIsVisible] = useState(false)
+  const { sessionId } = useParams<{ sessionId: string }>()
 
   console.log('GroupSession component, session:', session?.id)
 
-  // Add a small delay to ensure the session is properly loaded
+  useEffect(() => {
+    if (sessionId) {
+      loadSessionById(sessionId)
+    }
+  }, [sessionId, loadSessionById])
+
   useEffect(() => {
     if (session) {
-      const timer = setTimeout(() => {
-        setIsVisible(true)
-      }, 500)
-      return () => clearTimeout(timer)
-    } else {
-      setIsVisible(false)
+      setSession(session)
+    }
+  }, [session, setSession])
+
+  useEffect(() => {
+    if (session) {
+      setIsVisible(true)
     }
   }, [session])
 
@@ -39,8 +49,8 @@ export default function GroupSession() {
   }
 
   const handleCopyLink = () => {
-    const url = getSessionUrl()
-    if (url) {
+    if (session) {
+      const url = getSessionUrl(session.id)
       navigator.clipboard.writeText(url)
       setShowCopied(true)
     }
@@ -115,8 +125,12 @@ export default function GroupSession() {
         open={showCopied}
         autoHideDuration={3000}
         onClose={() => setShowCopied(false)}
-        message="Session link copied to clipboard!"
-      />
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        <Alert onClose={() => setShowCopied(false)} severity="success">
+          Link copied to clipboard!
+        </Alert>
+      </Snackbar>
     </Paper>
   )
 } 

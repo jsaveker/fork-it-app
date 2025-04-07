@@ -10,7 +10,7 @@ import {
   Snackbar,
 } from '@mui/material'
 import { motion, AnimatePresence } from 'framer-motion'
-import RestaurantCard from './RestaurantCard'
+import { RestaurantCard } from './RestaurantCard'
 import FilterPanel from './FilterPanel'
 import LoadingSpinner from './LoadingSpinner'
 import ErrorDisplay from './ErrorDisplay'
@@ -18,7 +18,8 @@ import { useLocation } from '../hooks/useLocation'
 import { useRestaurants } from '../hooks/useRestaurants'
 import { useVoting } from '../hooks/useVoting'
 import { addRestaurant } from '../services/sessionApi'
-import { FilterOptions, Restaurant } from '../types'
+import { FilterOptions, Restaurant, GroupSession } from '../types'
+import { Session } from '../types/Session'
 
 const RestaurantFinder = () => {
   const { location, loading: locationLoading, error: locationError } = useLocation()
@@ -172,7 +173,9 @@ const RestaurantFinder = () => {
       console.log('Restaurant added to session:', updatedSession.id)
       
       // Update the session state with the updated session
-      setSession(updatedSession)
+      if (updatedSession) {
+        setSession(updatedSession)
+      }
       
       // Check if this restaurant should be the selected one
       const votesResult = await getAllVotes(restaurant.id)
