@@ -25,7 +25,7 @@ export const useVoting = () => {
     const urlParams = new URLSearchParams(window.location.search)
     const sessionId = urlParams.get('session')
     
-    if (sessionId) {
+    if (sessionId && (!session || session.id !== sessionId)) {
       console.log('Found session ID in URL:', sessionId)
       loadSessionById(sessionId)
     }
@@ -69,6 +69,11 @@ export const useVoting = () => {
 
   // Load session by ID
   const loadSessionById = async (sessionId: string) => {
+    if (session?.id === sessionId) {
+      console.log('Session already loaded:', sessionId)
+      return session
+    }
+
     try {
       setIsLoading(true)
       console.log('Loading session with ID:', sessionId)
@@ -108,10 +113,8 @@ export const useVoting = () => {
 
   // Get session URL
   const getSessionUrl = (): string => {
-    console.log('Getting session URL, session:', session)
     if (!session) return ''
     const url = `${window.location.origin}?session=${session.id}`
-    console.log('Generated session URL:', url)
     return url
   }
 
@@ -324,14 +327,6 @@ export const useVoting = () => {
       throw err
     }
   }
-
-  // Preload votes when session changes
-  useEffect(() => {
-    if (session?.restaurants) {
-      const restaurantIds = session.restaurants.map((r: Restaurant) => r.id)
-      batchLoadVotes(restaurantIds)
-    }
-  }, [session?.id])
 
   return { 
     session, 
