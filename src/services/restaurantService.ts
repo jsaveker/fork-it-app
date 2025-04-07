@@ -1,4 +1,4 @@
-import { GroupSession, Restaurant, RestaurantVote } from '../types'
+import { RestaurantVote } from '../types'
 
 // Base URL for the API
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://api.fork-it.cc'
