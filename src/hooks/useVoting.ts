@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import { Session } from '../types/Session'
 import { Restaurant } from '../types/Restaurant'
 import { getUpvotes, getDownvotes, upvoteRestaurant, downvoteRestaurant } from '../services/restaurantService'
@@ -15,6 +15,47 @@ export const useVoting = () => {
   const [error, setError] = useState<string | null>(null)
   const [votesCache, setVotesCache] = useState<Record<string, VoteCount>>({})
   const [isLoading, setIsLoading] = useState(false)
+  const [userId, setUserId] = useState<string | null>(null)
+
+  // Load session by ID
+  const loadSessionById = async (sessionId: string) => {
+    try {
+      setIsLoading(true)
+      const response = await fetch(`/api/sessions/${sessionId}`)
+      if (!response.ok) {
+        throw new Error('Failed to load session')
+      }
+      const data = await response.json()
+      setSession(data.session)
+    } catch (err) {
+      setError('Failed to load session')
+      console.error('Error loading session:', err)
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  // Get session URL
+  const getSessionUrl = (sessionId: string): string => {
+    return `${window.location.origin}?session=${sessionId}`
+  }
+
+  // Get votes for a restaurant
+  const getVotes = async (restaurantId: string): Promise<VoteCount> => {
+    const votes = await getAllVotes(restaurantId)
+    return typeof votes === 'object' && !Array.isArray(votes) && 'upvotes' in votes
+      ? votes as VoteCount
+      : { upvotes: 0, downvotes: 0 }
+  }
+
+  // Handle vote action
+  const handleVote = async (restaurantId: string, voteType: 'up' | 'down') => {
+    if (voteType === 'up') {
+      await voteUp(restaurantId)
+    } else {
+      await voteDown(restaurantId)
+    }
+  }
 
   // Batch load votes for multiple restaurants
   const batchLoadVotes = async (restaurantIds: string[]): Promise<Record<string, VoteCount>> => {
@@ -119,14 +160,18 @@ export const useVoting = () => {
     }
   }, [session?.id])
 
-  // Handle vote action
-  const handleVote = async (restaurantId: string, voteType: 'up' | 'down') => {
-    if (voteType === 'up') {
-      await voteUp(restaurantId)
-    } else {
-      await voteDown(restaurantId)
-    }
+  return { 
+    session, 
+    error, 
+    isLoading, 
+    userId,
+    getAllVotes, 
+    voteUp, 
+    voteDown,
+    loadSessionById,
+    setSession,
+    getSessionUrl,
+    getVotes,
+    handleVote
   }
-
-  return { session, error, isLoading, getAllVotes, handleVote }
 } 

@@ -6,7 +6,7 @@ import {
   Rating,
 } from '@mui/material'
 import { Restaurant } from '../types'
-import VotingInterface from './VotingInterface'
+import { VotingInterface } from './VotingInterface'
 
 interface RestaurantCardProps {
   restaurant: Restaurant

@@ -175,12 +175,20 @@ const RestaurantFinder = () => {
       setSession(updatedSession)
       
       // Check if this restaurant should be the selected one
-      const votes = await getAllVotes(restaurant.id)
+      const votesResult = await getAllVotes(restaurant.id)
+      const votes = typeof votesResult === 'object' && !Array.isArray(votesResult) && 'upvotes' in votesResult
+        ? votesResult as { upvotes: number; downvotes: number }
+        : { upvotes: 0, downvotes: 0 }
+      
       const voteCount = votes.upvotes - votes.downvotes
       
       // If this restaurant has more votes than the current selected restaurant, select it
       if (selectedRestaurant) {
-        const selectedVotes = await getAllVotes(selectedRestaurant.id)
+        const selectedVotesResult = await getAllVotes(selectedRestaurant.id)
+        const selectedVotes = typeof selectedVotesResult === 'object' && !Array.isArray(selectedVotesResult) && 'upvotes' in selectedVotesResult
+          ? selectedVotesResult as { upvotes: number; downvotes: number }
+          : { upvotes: 0, downvotes: 0 }
+        
         const selectedVoteCount = selectedVotes.upvotes - selectedVotes.downvotes
         
         if (voteCount > selectedVoteCount) {
