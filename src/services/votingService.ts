@@ -78,7 +78,7 @@ export const saveSession = (session: GroupSession): void => {
 
 export const vote = (
   restaurantId: string,
-  _userId: string,
+  userId: string,
   isUpvote: boolean
 ): GroupSession => {
   let session = getSession()
@@ -101,9 +101,19 @@ export const vote = (
 
   // Update the vote count
   if (isUpvote) {
-    restaurantVote.upvotes += 1
+    if (typeof restaurantVote.upvotes === 'number') {
+      restaurantVote.upvotes += 1
+    } else {
+      // If it's an array, add the user ID
+      restaurantVote.upvotes = [...restaurantVote.upvotes, userId]
+    }
   } else {
-    restaurantVote.downvotes += 1
+    if (typeof restaurantVote.downvotes === 'number') {
+      restaurantVote.downvotes += 1
+    } else {
+      // If it's an array, add the user ID
+      restaurantVote.downvotes = [...restaurantVote.downvotes, userId]
+    }
   }
 
   saveSession(session)
