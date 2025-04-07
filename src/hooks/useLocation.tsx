@@ -6,6 +6,7 @@ interface LocationContextType {
   loading: boolean;
   error: string | null;
   refreshLocation: () => void;
+  setLocationFromZipCode: (zipCode: string) => Promise<void>;
 }
 
 const LocationContext = createContext<LocationContextType | undefined>(undefined)
@@ -30,6 +31,7 @@ export const LocationProvider = ({ children }: { children: ReactNode }) => {
         setLocation({
           latitude: position.coords.latitude,
           longitude: position.coords.longitude,
+          accuracy: position.coords.accuracy,
         })
         setLoading(false)
       },
@@ -57,6 +59,38 @@ export const LocationProvider = ({ children }: { children: ReactNode }) => {
     )
   }
 
+  // Function to set location from ZIP code
+  const setLocationFromZipCode = async (zipCode: string) => {
+    setLoading(true)
+    setError(null)
+    
+    try {
+      // Use a geocoding service to convert ZIP code to coordinates
+      const response = await fetch(`https://api.fork-it.cc/geocode?zipCode=${zipCode}`)
+      
+      if (!response.ok) {
+        throw new Error('Failed to geocode ZIP code')
+      }
+      
+      const data = await response.json()
+      
+      if (!data.latitude || !data.longitude) {
+        throw new Error('Invalid geocoding response')
+      }
+      
+      setLocation({
+        latitude: data.latitude,
+        longitude: data.longitude,
+        zipCode: zipCode,
+      })
+    } catch (err) {
+      console.error('Error geocoding ZIP code:', err)
+      setError('Failed to find location for ZIP code. Please try again.')
+    } finally {
+      setLoading(false)
+    }
+  }
+
   useEffect(() => {
     getLocation()
   }, [])
@@ -66,7 +100,7 @@ export const LocationProvider = ({ children }: { children: ReactNode }) => {
   }
 
   return (
-    <LocationContext.Provider value={{ location, loading, error, refreshLocation }}>
+    <LocationContext.Provider value={{ location, loading, error, refreshLocation, setLocationFromZipCode }}>
       {children}
     </LocationContext.Provider>
   )

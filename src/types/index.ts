@@ -23,6 +23,7 @@ export interface LocationData {
   latitude: number;
   longitude: number;
   accuracy?: number;
+  zipCode?: string;
 }
 
 export interface FilterOptions {
