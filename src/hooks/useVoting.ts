@@ -119,5 +119,14 @@ export const useVoting = () => {
     }
   }, [session?.id])
 
-  return { session, error, isLoading, getAllVotes, voteUp, voteDown }
+  // Handle vote action
+  const handleVote = async (restaurantId: string, voteType: 'up' | 'down') => {
+    if (voteType === 'up') {
+      await voteUp(restaurantId)
+    } else {
+      await voteDown(restaurantId)
+    }
+  }
+
+  return { session, error, isLoading, getAllVotes, handleVote }
 } 

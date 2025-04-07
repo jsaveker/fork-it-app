@@ -160,7 +160,7 @@ const RestaurantFinder = () => {
     }
   }
   
-  const addRestaurantToSession = async (restaurant: any) => {
+  const addRestaurantToSession = async (restaurant: Restaurant) => {
     if (!session) return
     
     setAddingRestaurant(true)
@@ -175,12 +175,12 @@ const RestaurantFinder = () => {
       setSession(updatedSession)
       
       // Check if this restaurant should be the selected one
-      const votes = getAllVotes(restaurant.id)
+      const votes = await getAllVotes(restaurant.id)
       const voteCount = votes.upvotes - votes.downvotes
       
       // If this restaurant has more votes than the current selected restaurant, select it
       if (selectedRestaurant) {
-        const selectedVotes = getAllVotes(selectedRestaurant.id)
+        const selectedVotes = await getAllVotes(selectedRestaurant.id)
         const selectedVoteCount = selectedVotes.upvotes - selectedVotes.downvotes
         
         if (voteCount > selectedVoteCount) {

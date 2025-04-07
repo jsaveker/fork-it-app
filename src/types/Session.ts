@@ -5,4 +5,5 @@ export interface Session {
   restaurants: Restaurant[]
   createdAt: string
   updatedAt: string
+  expires: string
 } 
