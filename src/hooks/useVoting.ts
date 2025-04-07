@@ -18,16 +18,29 @@ export const useVoting = () => {
   const [votesCache, setVotesCache] = useState<Record<string, VoteCount>>({})
   const [isLoading, setIsLoading] = useState(false)
   const [userId] = useState<string>(() => crypto.randomUUID())
+  const [sessionLoadAttempted, setSessionLoadAttempted] = useState(false)
 
   // Check for session ID in URL on initialization
   useEffect(() => {
-    const urlParams = new URLSearchParams(window.location.search)
-    const sessionId = urlParams.get('session')
-    
-    if (sessionId && (!session || session.id !== sessionId)) {
-      console.log('Found session ID in URL:', sessionId)
-      loadSessionById(sessionId)
+    const loadSessionFromUrl = async () => {
+      const urlParams = new URLSearchParams(window.location.search)
+      const sessionId = urlParams.get('session')
+      
+      if (sessionId && (!session || session.id !== sessionId)) {
+        console.log('Found session ID in URL:', sessionId)
+        try {
+          await loadSessionById(sessionId)
+        } catch (err) {
+          console.error('Error loading session from URL:', err)
+        } finally {
+          setSessionLoadAttempted(true)
+        }
+      } else {
+        setSessionLoadAttempted(true)
+      }
     }
+    
+    loadSessionFromUrl()
   }, [])
 
   // Create a new session
@@ -68,6 +81,11 @@ export const useVoting = () => {
 
   // Load session by ID
   const loadSessionById = async (sessionId: string) => {
+    if (!sessionId) {
+      console.error('Cannot load session: No session ID provided')
+      return null
+    }
+    
     if (session?.id === sessionId) {
       console.log('Session already loaded:', sessionId)
       return session
@@ -340,6 +358,7 @@ export const useVoting = () => {
     getSessionUrl,
     getVotes,
     handleVote,
-    createSession
+    createSession,
+    sessionLoadAttempted
   }
 } 
