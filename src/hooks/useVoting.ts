@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect } from 'react'
 import { GroupSession, RestaurantVote } from '../types'
 import { Restaurant } from '../types/Restaurant'
 import { getUpvotes, getDownvotes, upvoteRestaurant, downvoteRestaurant } from '../services/restaurantService.js'
@@ -72,7 +72,7 @@ export const useVoting = () => {
       // Initialize votes cache from session data
       if (data && data.votes) {
         const initialVotes: Record<string, VoteCount> = {}
-        data.votes.forEach((vote: any) => {
+        data.votes.forEach((vote: RestaurantVote) => {
           // Handle both array and number formats for upvotes/downvotes
           const upvotesCount = Array.isArray(vote.upvotes) ? vote.upvotes.length : vote.upvotes || 0
           const downvotesCount = Array.isArray(vote.downvotes) ? vote.downvotes.length : vote.downvotes || 0
@@ -108,7 +108,7 @@ export const useVoting = () => {
   const getVotes = async (restaurantId: string): Promise<VoteCount> => {
     // First check if we have the votes in the session
     if (session && session.votes) {
-      const sessionVote = session.votes.find(vote => vote.restaurantId === restaurantId)
+      const sessionVote = session.votes.find((vote: RestaurantVote) => vote.restaurantId === restaurantId)
       if (sessionVote) {
         // Handle both array and number formats for upvotes/downvotes
         const upvotesCount = Array.isArray(sessionVote.upvotes) ? sessionVote.upvotes.length : sessionVote.upvotes || 0
@@ -128,11 +128,14 @@ export const useVoting = () => {
     
     // If not in cache, fetch from API
     try {
-      const upvotes = await getUpvotes(restaurantId)
-      const downvotes = await getDownvotes(restaurantId)
+      const upvotes = await getUpvotes(session?.id || '', restaurantId)
+      const downvotes = await getDownvotes(session?.id || '', restaurantId)
       
-      const voteCount = { upvotes, downvotes }
-      setVotesCache(prev => ({ ...prev, [restaurantId]: voteCount }))
+      const voteCount = { 
+        upvotes: upvotes.length, 
+        downvotes: downvotes.length 
+      }
+      setVotesCache((prev: Record<string, VoteCount>) => ({ ...prev, [restaurantId]: voteCount }))
       
       return voteCount
     } catch (err) {
@@ -163,7 +166,7 @@ export const useVoting = () => {
     // First check session votes
     if (session && session.votes) {
       uniqueIds.forEach(id => {
-        const sessionVote = session.votes.find(vote => vote.restaurantId === id)
+        const sessionVote = session.votes.find((vote: RestaurantVote) => vote.restaurantId === id)
         if (sessionVote) {
           // Handle both array and number formats for upvotes/downvotes
           const upvotesCount = Array.isArray(sessionVote.upvotes) ? sessionVote.upvotes.length : sessionVote.upvotes || 0
@@ -183,20 +186,20 @@ export const useVoting = () => {
     if (idsToLoad.length === 0) return { ...votesCache, ...newVotes }
     
     try {
-      const upvotesPromises = idsToLoad.map(id => getUpvotes(id))
-      const downvotesPromises = idsToLoad.map(id => getDownvotes(id))
+      const upvotesPromises = idsToLoad.map(id => getUpvotes(session?.id || '', id))
+      const downvotesPromises = idsToLoad.map(id => getDownvotes(session?.id || '', id))
       
       const upvotesResults = await Promise.all(upvotesPromises)
       const downvotesResults = await Promise.all(downvotesPromises)
       
       idsToLoad.forEach((id, index) => {
         newVotes[id] = {
-          upvotes: upvotesResults[index],
-          downvotes: downvotesResults[index]
+          upvotes: upvotesResults[index].length,
+          downvotes: downvotesResults[index].length
         }
       })
       
-      setVotesCache(prev => ({ ...prev, ...newVotes }))
+      setVotesCache((prev: Record<string, VoteCount>) => ({ ...prev, ...newVotes }))
       return { ...votesCache, ...newVotes }
     } catch (err) {
       console.error('Error batch loading votes:', err)
@@ -222,7 +225,7 @@ export const useVoting = () => {
     }
     
     try {
-      await upvoteRestaurant(restaurantId, session.id)
+      await upvoteRestaurant(session.id, restaurantId, userId || '')
       
       // Update votes cache
       const currentVotes = votesCache[restaurantId] || { upvotes: 0, downvotes: 0 }
@@ -231,11 +234,11 @@ export const useVoting = () => {
         upvotes: currentVotes.upvotes + 1
       }
       
-      setVotesCache(prev => ({ ...prev, [restaurantId]: newVotes }))
+      setVotesCache((prev: Record<string, VoteCount>) => ({ ...prev, [restaurantId]: newVotes }))
       
       // Update session votes
       if (session.votes) {
-        const voteIndex = session.votes.findIndex(v => v.restaurantId === restaurantId)
+        const voteIndex = session.votes.findIndex((v: RestaurantVote) => v.restaurantId === restaurantId)
         if (voteIndex >= 0) {
           const updatedVotes = [...session.votes]
           const currentVote = updatedVotes[voteIndex]
@@ -245,14 +248,14 @@ export const useVoting = () => {
               ? [...currentVote.upvotes, session.id]
               : 1
           }
-          setSession(prev => prev ? { ...prev, votes: updatedVotes } : null)
+          setSession((prev: GroupSession | null) => prev ? { ...prev, votes: updatedVotes } : null)
         } else {
           const newVote: RestaurantVote = {
             restaurantId,
             upvotes: [session.id],
             downvotes: []
           }
-          setSession(prev => prev ? {
+          setSession((prev: GroupSession | null) => prev ? {
             ...prev,
             votes: [...prev.votes, newVote]
           } : null)
@@ -271,7 +274,7 @@ export const useVoting = () => {
     }
     
     try {
-      await downvoteRestaurant(restaurantId, session.id)
+      await downvoteRestaurant(session.id, restaurantId, userId || '')
       
       // Update votes cache
       const currentVotes = votesCache[restaurantId] || { upvotes: 0, downvotes: 0 }
@@ -280,11 +283,11 @@ export const useVoting = () => {
         downvotes: currentVotes.downvotes + 1
       }
       
-      setVotesCache(prev => ({ ...prev, [restaurantId]: newVotes }))
+      setVotesCache((prev: Record<string, VoteCount>) => ({ ...prev, [restaurantId]: newVotes }))
       
       // Update session votes
       if (session.votes) {
-        const voteIndex = session.votes.findIndex(v => v.restaurantId === restaurantId)
+        const voteIndex = session.votes.findIndex((v: RestaurantVote) => v.restaurantId === restaurantId)
         if (voteIndex >= 0) {
           const updatedVotes = [...session.votes]
           const currentVote = updatedVotes[voteIndex]
@@ -294,14 +297,14 @@ export const useVoting = () => {
               ? [...currentVote.downvotes, session.id]
               : 1
           }
-          setSession(prev => prev ? { ...prev, votes: updatedVotes } : null)
+          setSession((prev: GroupSession | null) => prev ? { ...prev, votes: updatedVotes } : null)
         } else {
           const newVote: RestaurantVote = {
             restaurantId,
             upvotes: [],
             downvotes: [session.id]
           }
-          setSession(prev => prev ? {
+          setSession((prev: GroupSession | null) => prev ? {
             ...prev,
             votes: [...prev.votes, newVote]
           } : null)
