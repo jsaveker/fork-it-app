@@ -3,7 +3,20 @@ import { GroupSession } from '../types'
 import { createSession, getSession, vote as voteApi } from '../services/sessionApi'
 
 export const useVoting = () => {
-  const [session, setSession] = useState<GroupSession | null>(null)
+  // Initialize session from localStorage if available
+  const [session, setSession] = useState<GroupSession | null>(() => {
+    const storedSession = localStorage.getItem('current_session')
+    if (storedSession) {
+      try {
+        return JSON.parse(storedSession)
+      } catch (e) {
+        console.error('Error parsing stored session:', e)
+        return null
+      }
+    }
+    return null
+  })
+  
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [userId] = useState<string>(() => {
@@ -51,9 +64,13 @@ export const useVoting = () => {
             id: sessionId
           }
           setSession(preservedSession)
+          // Store in localStorage
+          localStorage.setItem('current_session', JSON.stringify(preservedSession))
         } else {
           // If the session ID is the same, just update the session
           setSession(loadedSession)
+          // Store in localStorage
+          localStorage.setItem('current_session', JSON.stringify(loadedSession))
         }
         
         // Don't update the URL here - we want to keep the same session ID
@@ -62,6 +79,8 @@ export const useVoting = () => {
         const newSession = await createSession('Default Session')
         console.log('New session created:', newSession.id)
         setSession(newSession)
+        // Store in localStorage
+        localStorage.setItem('current_session', JSON.stringify(newSession))
         updateUrlWithSessionId(newSession.id)
       }
     } catch (err) {
@@ -82,6 +101,8 @@ export const useVoting = () => {
       const newSession = await createSession('Default Session')
       console.log('New session created:', newSession.id)
       setSession(newSession)
+      // Store in localStorage
+      localStorage.setItem('current_session', JSON.stringify(newSession))
       updateUrlWithSessionId(newSession.id)
     } catch (err) {
       console.error('Error creating session:', err)
@@ -124,9 +145,13 @@ export const useVoting = () => {
                 id: sessionId
               }
               setSession(preservedSession)
+              // Store in localStorage
+              localStorage.setItem('current_session', JSON.stringify(preservedSession))
             } else {
               // If the session ID is the same, just update the session
               setSession(loadedSession)
+              // Store in localStorage
+              localStorage.setItem('current_session', JSON.stringify(loadedSession))
             }
             
             // Don't update the URL here - we want to keep the same session ID
@@ -157,6 +182,13 @@ export const useVoting = () => {
     }
   }, [session])
 
+  // Update localStorage when session changes
+  useEffect(() => {
+    if (session) {
+      localStorage.setItem('current_session', JSON.stringify(session))
+    }
+  }, [session])
+
   const handleVote = async (restaurantId: string, isUpvote: boolean) => {
     try {
       // If no session exists, create one first
@@ -167,6 +199,8 @@ export const useVoting = () => {
         
         // Update the session state
         setSession(newSession)
+        // Store in localStorage
+        localStorage.setItem('current_session', JSON.stringify(newSession))
         
         // Update the URL with the new session ID
         updateUrlWithSessionId(newSession.id)
@@ -191,8 +225,12 @@ export const useVoting = () => {
             id: newSession.id
           }
           setSession(preservedSession)
+          // Store in localStorage
+          localStorage.setItem('current_session', JSON.stringify(preservedSession))
         } else {
           setSession(updatedSession)
+          // Store in localStorage
+          localStorage.setItem('current_session', JSON.stringify(updatedSession))
         }
         
         return
@@ -223,9 +261,13 @@ export const useVoting = () => {
           id: originalSessionId
         }
         setSession(preservedSession)
+        // Store in localStorage
+        localStorage.setItem('current_session', JSON.stringify(preservedSession))
       } else {
         // If the session ID is the same, just update the session
         setSession(updatedSession)
+        // Store in localStorage
+        localStorage.setItem('current_session', JSON.stringify(updatedSession))
       }
       
       // Don't update the URL here - we want to keep the same session ID
