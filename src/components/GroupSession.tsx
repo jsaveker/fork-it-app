@@ -18,9 +18,8 @@ import { useVotingContext } from '../hooks/VotingProvider'
 import { useParams, useLocation } from 'react-router-dom'
 
 export default function GroupSession() {
-  const { session, getSessionUrl, loadSessionById, isLoading } = useVotingContext()
+  const { session, getSessionUrl, isLoading } = useVotingContext()
   const [showCopied, setShowCopied] = useState(false)
-  const [isLoadingSession, setIsLoadingSession] = useState(false)
   const [sessionLoadAttempted, setSessionLoadAttempted] = useState(false)
   const { sessionId: pathSessionId } = useParams<{ sessionId: string }>()
   const location = useLocation()
@@ -42,30 +41,13 @@ export default function GroupSession() {
   console.log('Checking for session ID in URL:', getSessionId())
   console.log('Current session:', session)
 
+  // Mark session load as attempted after first render
   useEffect(() => {
-    const loadSession = async () => {
-      const sessionId = getSessionId()
-      if (sessionId && (!session || session.id !== sessionId)) {
-        console.log('Loading session from URL:', sessionId)
-        setIsLoadingSession(true)
-        try {
-          await loadSessionById(sessionId)
-        } catch (error) {
-          console.error('Error loading session:', error)
-        } finally {
-          setIsLoadingSession(false)
-          setSessionLoadAttempted(true)
-        }
-      } else if (!sessionId && !sessionLoadAttempted) {
-        // If no session ID in URL and we haven't attempted to load yet, mark as attempted
-        setSessionLoadAttempted(true)
-      }
-    }
-    loadSession()
-  }, [pathSessionId, location.search, session, loadSessionById]) // Add session and loadSessionById to dependencies
+    setSessionLoadAttempted(true)
+  }, [])
 
   // Show loading state while loading session
-  if (isLoading || isLoadingSession) {
+  if (isLoading) {
     return (
       <Paper elevation={2} sx={{ p: 3, mb: 4, borderRadius: 2, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
         <CircularProgress />

@@ -72,25 +72,34 @@ export const useVoting = () => {
   // Check for session ID in URL on initialization
   useEffect(() => {
     const loadSessionFromUrl = async () => {
-      const urlParams = new URLSearchParams(window.location.search)
-      const sessionId = urlParams.get('session')
+      // Check path params first
+      const pathname = window.location.pathname;
+      const pathMatch = pathname.match(/\/session\/([^\/]+)/);
+      const pathSessionId = pathMatch ? pathMatch[1] : null;
+      
+      // Then check query params
+      const urlParams = new URLSearchParams(window.location.search);
+      const querySessionId = urlParams.get('session');
+      
+      // Use path param if available, otherwise use query param
+      const sessionId = pathSessionId || querySessionId;
       
       if (sessionId && (!session || session.id !== sessionId)) {
-        console.log('Found session ID in URL:', sessionId)
+        console.log('Found session ID in URL:', sessionId);
         try {
-          await loadSessionById(sessionId)
+          await loadSessionById(sessionId);
         } catch (err) {
-          console.error('Error loading session from URL:', err)
+          console.error('Error loading session from URL:', err);
         } finally {
-          setSessionLoadAttempted(true)
+          setSessionLoadAttempted(true);
         }
       } else {
-        setSessionLoadAttempted(true)
+        setSessionLoadAttempted(true);
       }
-    }
+    };
     
-    loadSessionFromUrl()
-  }, [session, loadSessionById])
+    loadSessionFromUrl();
+  }, []); // Only run once on initialization
 
   // Create a new session
   const createSession = async (name: string = 'New Session') => {
