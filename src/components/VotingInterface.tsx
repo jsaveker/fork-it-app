@@ -24,7 +24,6 @@ interface VoteCount {
 export const VotingInterface: React.FC<VotingInterfaceProps> = ({ restaurant }) => {
   const { handleVote, getVotes, session, isLoading: sessionLoading } = useVotingContext()
   const [votes, setVotes] = useState<VoteCount>({ upvotes: 0, downvotes: 0 })
-  const [loading, setLoading] = useState(false)
   const [voteInProgress, setVoteInProgress] = useState(false)
 
   console.log('VotingInterface - Session state:', session)
