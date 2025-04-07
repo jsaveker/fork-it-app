@@ -18,7 +18,7 @@ import { useLocation } from '../hooks/useLocation'
 import { useRestaurants } from '../hooks/useRestaurants'
 import { useVoting } from '../hooks/useVoting'
 import { addRestaurant } from '../services/sessionApi'
-import { FilterOptions, Restaurant, GroupSession } from '../types'
+import { FilterOptions, Restaurant } from '../types'
 
 const RestaurantFinder = () => {
   const { location, loading: locationLoading, error: locationError } = useLocation()

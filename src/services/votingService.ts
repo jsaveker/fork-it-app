@@ -78,7 +78,7 @@ export const saveSession = (session: GroupSession): void => {
 
 export const vote = (
   restaurantId: string,
-  userId: string,
+  _userId: string,
   isUpvote: boolean
 ): GroupSession => {
   let session = getSession()
@@ -93,21 +93,17 @@ export const vote = (
   if (!restaurantVote) {
     restaurantVote = {
       restaurantId,
-      upvotes: [],
-      downvotes: []
+      upvotes: 0,
+      downvotes: 0
     }
     session.votes.push(restaurantVote)
   }
 
-  // Remove any existing votes by this user for this restaurant
-  restaurantVote.upvotes = restaurantVote.upvotes.filter(id => id !== userId)
-  restaurantVote.downvotes = restaurantVote.downvotes.filter(id => id !== userId)
-
-  // Add the new vote
+  // Update the vote count
   if (isUpvote) {
-    restaurantVote.upvotes.push(userId)
+    restaurantVote.upvotes += 1
   } else {
-    restaurantVote.downvotes.push(userId)
+    restaurantVote.downvotes += 1
   }
 
   saveSession(session)
@@ -143,13 +139,10 @@ export const getRestaurantVotes = (
 }
 
 export const getUserVote = (
-  restaurantId: string,
-  userId: string
+  _restaurantId: string,
+  _userId: string
 ): boolean | null => {
-  const votes = getRestaurantVotes(restaurantId)
-  if (!votes) return null
-  
-  if (votes.upvotes.includes(userId)) return true
-  if (votes.downvotes.includes(userId)) return false
+  // This function is no longer applicable with the new vote structure
+  // We're now tracking vote counts, not individual user votes
   return null
 } 

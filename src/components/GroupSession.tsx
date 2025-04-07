@@ -17,7 +17,7 @@ import { useVoting } from '../hooks/useVoting'
 import { useParams } from 'react-router-dom'
 
 export default function GroupSession() {
-  const { session, getSessionUrl, loadSessionById, setSession } = useVoting()
+  const { session, getSessionUrl, loadSessionById } = useVoting()
   const [showCopied, setShowCopied] = useState(false)
   const [isVisible, setIsVisible] = useState(false)
   const { sessionId } = useParams<{ sessionId: string }>()
