@@ -14,6 +14,7 @@ import { RestaurantCard } from './RestaurantCard'
 import FilterPanel from './FilterPanel'
 import LoadingSpinner from './LoadingSpinner'
 import ErrorDisplay from './ErrorDisplay'
+import { ZipCodeInput } from './ZipCodeInput'
 import { useLocation } from '../hooks/useLocation'
 import { useRestaurants } from '../hooks/useRestaurants'
 import { useVotingContext } from '../hooks/VotingProvider'
@@ -234,12 +235,12 @@ const RestaurantFinder = () => {
     }
   }
 
+  // Show error if location services are denied
   if (locationError) {
     return (
-      <ErrorDisplay
-        message="Unable to get your location. Please enable location services and refresh the page."
-        onRetry={() => window.location.reload()}
-      />
+      <Container maxWidth="md">
+        <ZipCodeInput />
+      </Container>
     )
   }
 
@@ -252,6 +253,7 @@ const RestaurantFinder = () => {
     )
   }
 
+  // Show loading state while getting location
   if (locationLoading && !location) {
     return <LoadingSpinner message="Getting your location..." />
   }
