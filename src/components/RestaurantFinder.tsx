@@ -94,13 +94,12 @@ const RestaurantFinder = () => {
       
       console.log(`Checking restaurant: ${restaurant.name}, Votes: ${voteCount} (${votes.upvotes} up, ${votes.downvotes} down)`)
       
-      // Only consider restaurants that have at least one vote
-      if (votes.upvotes > 0 || votes.downvotes > 0) {
-        if (voteCount > highestVoteCount) {
-          highestVoteCount = voteCount
-          highestVotedRestaurant = restaurant
-          console.log(`New highest voted restaurant: ${restaurant.name} with ${voteCount} votes`)
-        }
+      // Consider all restaurants, not just those with votes
+      // This ensures we select the restaurant with the highest net votes
+      if (voteCount > highestVoteCount) {
+        highestVoteCount = voteCount
+        highestVotedRestaurant = restaurant
+        console.log(`New highest voted restaurant: ${restaurant.name} with ${voteCount} votes`)
       }
     }
     
