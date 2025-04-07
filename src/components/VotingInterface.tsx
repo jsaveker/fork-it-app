@@ -5,6 +5,7 @@ import {
   Typography,
   CircularProgress,
   Tooltip,
+  Alert,
 } from '@mui/material'
 import ThumbUpIcon from '@mui/icons-material/ThumbUp'
 import ThumbDownIcon from '@mui/icons-material/ThumbDown'
@@ -50,7 +51,7 @@ export const VotingInterface: React.FC<VotingInterfaceProps> = ({ restaurant }) 
     
     try {
       setLoading(true)
-      await handleVote(restaurant.id, 'up')
+      await handleVote(restaurant.id, true)
       const voteCount = await getVotes(restaurant.id)
       if (voteCount) {
         setVotes(voteCount)
@@ -70,7 +71,7 @@ export const VotingInterface: React.FC<VotingInterfaceProps> = ({ restaurant }) 
     
     try {
       setLoading(true)
-      await handleVote(restaurant.id, 'down')
+      await handleVote(restaurant.id, false)
       const voteCount = await getVotes(restaurant.id)
       if (voteCount) {
         setVotes(voteCount)
@@ -84,30 +85,40 @@ export const VotingInterface: React.FC<VotingInterfaceProps> = ({ restaurant }) 
 
   return (
     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-      <Tooltip title={session ? "Upvote" : "Join a session to vote"}>
-        <span>
-          <IconButton 
-            onClick={handleUpvote} 
-            color="primary" 
-            disabled={!session || loading}
-          >
-            {loading ? <CircularProgress size={24} /> : <ThumbUpIcon />}
-          </IconButton>
-        </span>
-      </Tooltip>
-      <Typography>{votes.upvotes}</Typography>
-      <Tooltip title={session ? "Downvote" : "Join a session to vote"}>
-        <span>
-          <IconButton 
-            onClick={handleDownvote} 
-            color="error" 
-            disabled={!session || loading}
-          >
-            {loading ? <CircularProgress size={24} /> : <ThumbDownIcon />}
-          </IconButton>
-        </span>
-      </Tooltip>
-      <Typography>{votes.downvotes}</Typography>
+      {!session && (
+        <Alert severity="info" sx={{ flex: 1 }}>
+          Start or join a voting session to vote on restaurants
+        </Alert>
+      )}
+      
+      {session && (
+        <>
+          <Tooltip title={session ? "Upvote" : "Join a session to vote"}>
+            <span>
+              <IconButton 
+                onClick={handleUpvote} 
+                color="primary" 
+                disabled={!session || loading}
+              >
+                {loading ? <CircularProgress size={24} /> : <ThumbUpIcon />}
+              </IconButton>
+            </span>
+          </Tooltip>
+          <Typography>{votes.upvotes}</Typography>
+          <Tooltip title={session ? "Downvote" : "Join a session to vote"}>
+            <span>
+              <IconButton 
+                onClick={handleDownvote} 
+                color="error" 
+                disabled={!session || loading}
+              >
+                {loading ? <CircularProgress size={24} /> : <ThumbDownIcon />}
+              </IconButton>
+            </span>
+          </Tooltip>
+          <Typography>{votes.downvotes}</Typography>
+        </>
+      )}
     </Box>
   )
 } 
