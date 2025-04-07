@@ -99,7 +99,7 @@ export const useVoting = () => {
     };
     
     loadSessionFromUrl();
-  }, []); // Only run once on initialization
+  }, [window.location.search]); // Re-run when URL search params change
 
   // Create a new session
   const createSession = async (name: string = 'New Session') => {
