@@ -88,26 +88,44 @@ const RestaurantFinder = () => {
     let highestVotedRestaurant: Restaurant | null = null
     let highestVoteCount = -1
     
-    // Consider all restaurants, not just those in the current session
-    for (const restaurant of restaurants) {
-      const votes = getAllVotes(restaurant.id)
-      const voteCount = votes.upvotes - votes.downvotes
-      
-      console.log(`Checking restaurant: ${restaurant.name}, Votes: ${voteCount} (${votes.upvotes} up, ${votes.downvotes} down)`)
-      
-      // Only update if this restaurant has a higher vote count
-      if (voteCount > highestVoteCount) {
-        highestVoteCount = voteCount
-        highestVotedRestaurant = restaurant
-        console.log(`New highest voted restaurant: ${restaurant.name} with ${voteCount} votes`)
-      }
-    }
+    // Load all votes in one batch
+    const restaurantIds = restaurants.map(r => r.id)
     
-    if (highestVotedRestaurant) {
-      console.log(`Selected highest voted restaurant: ${highestVotedRestaurant.name} with ${highestVoteCount} votes`)
-    } else {
-      console.log('No restaurant with votes found')
-    }
+    // Use Promise.all to handle the batch request
+    Promise.all(restaurantIds.map(id => getAllVotes(id)))
+      .then(voteResults => {
+        // Process the votes result
+        const votes: Record<string, { upvotes: number; downvotes: number }> = {}
+        
+        restaurantIds.forEach((id, index) => {
+          const voteResult = voteResults[index]
+          if (typeof voteResult === 'object' && 'upvotes' in voteResult && 'downvotes' in voteResult) {
+            votes[id] = voteResult as { upvotes: number; downvotes: number }
+          }
+        })
+        
+        for (const restaurant of restaurants) {
+          const restaurantVotes = votes[restaurant.id] || { upvotes: 0, downvotes: 0 }
+          const voteCount = restaurantVotes.upvotes - restaurantVotes.downvotes
+          
+          console.log(`Checking restaurant: ${restaurant.name}, Votes: ${voteCount} (${restaurantVotes.upvotes} up, ${restaurantVotes.downvotes} down)`)
+          
+          if (voteCount > highestVoteCount) {
+            highestVoteCount = voteCount
+            highestVotedRestaurant = restaurant
+            console.log(`New highest voted restaurant: ${restaurant.name} with ${voteCount} votes`)
+          }
+        }
+        
+        if (highestVotedRestaurant) {
+          console.log(`Selected highest voted restaurant: ${highestVotedRestaurant.name} with ${highestVoteCount} votes`)
+        } else {
+          console.log('No restaurant with votes found')
+        }
+      })
+      .catch(error => {
+        console.error('Error loading votes:', error)
+      })
     
     return highestVotedRestaurant
   }
