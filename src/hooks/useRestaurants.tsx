@@ -46,12 +46,20 @@ export const RestaurantsProvider = ({ children }: { children: ReactNode }) => {
       // Combine current filters with any new options
       const currentFilters = { ...filters, ...(options || {}) }
       
+      // Convert miles to meters for the API
+      const radiusInMeters = currentFilters.distance * 1609.34
+      
       // Use the placesApi service to fetch restaurants
-      const results = await searchNearbyRestaurants(
-        location.latitude,
-        location.longitude,
-        currentFilters
-      )
+      const results = await searchNearbyRestaurants({
+        latitude: location.latitude,
+        longitude: location.longitude,
+        radius: radiusInMeters,
+        filters: {
+          rating: currentFilters.rating,
+          priceLevel: currentFilters.priceLevel,
+          cuisineTypes: currentFilters.cuisineTypes
+        }
+      })
       
       setRestaurants(results)
       
