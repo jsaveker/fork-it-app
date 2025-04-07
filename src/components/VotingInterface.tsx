@@ -26,14 +26,17 @@ export const VotingInterface: React.FC<VotingInterfaceProps> = ({ restaurant }) 
   const [votes, setVotes] = useState<VoteCount>({ upvotes: 0, downvotes: 0 })
   const [loading, setLoading] = useState(false)
 
+  console.log('VotingInterface - Session state:', session)
+  console.log('VotingInterface - Restaurant:', restaurant)
+
   useEffect(() => {
     const loadVotes = async () => {
       try {
         setLoading(true)
+        console.log('Loading votes for restaurant:', restaurant.id)
         const voteCount = await getVotes(restaurant.id)
-        if (voteCount) {
-          setVotes(voteCount)
-        }
+        console.log('Votes loaded for restaurant:', restaurant.id, voteCount)
+        setVotes(voteCount)
       } catch (error) {
         console.error('Error loading votes:', error)
       } finally {
