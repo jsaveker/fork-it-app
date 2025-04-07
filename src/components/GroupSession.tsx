@@ -8,6 +8,7 @@ import {
   IconButton,
   Tooltip,
   Alert,
+  CircularProgress,
 } from '@mui/material'
 import {
   ContentCopy as CopyIcon,
@@ -17,59 +18,72 @@ import { useVotingContext } from '../hooks/VotingProvider'
 import { useParams } from 'react-router-dom'
 
 export default function GroupSession() {
-  const { session, getSessionUrl, loadSessionById } = useVotingContext()
+  const { session, getSessionUrl, loadSessionById, isLoading } = useVotingContext()
   const [showCopied, setShowCopied] = useState(false)
-  const [isVisible, setIsVisible] = useState(false)
+  const [isLoadingSession, setIsLoadingSession] = useState(false)
   const { sessionId } = useParams<{ sessionId: string }>()
 
   console.log('GroupSession component, session:', session?.id)
 
   useEffect(() => {
-    if (sessionId) {
-      loadSessionById(sessionId)
+    const loadSession = async () => {
+      if (sessionId) {
+        setIsLoadingSession(true)
+        try {
+          await loadSessionById(sessionId)
+        } catch (error) {
+          console.error('Error loading session:', error)
+        } finally {
+          setIsLoadingSession(false)
+        }
+      }
     }
+    loadSession()
   }, [sessionId, loadSessionById])
 
-  useEffect(() => {
-    if (session) {
-      setIsVisible(true)
-    }
-  }, [session])
+  if (isLoading || isLoadingSession) {
+    return (
+      <Paper elevation={2} sx={{ p: 3, mb: 4, borderRadius: 2, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+        <CircularProgress />
+      </Paper>
+    )
+  }
 
-  if (!session || !isVisible) {
-    console.log('No session available or not visible yet, not rendering GroupSession')
-    return null
+  if (!session) {
+    return (
+      <Paper elevation={2} sx={{ p: 3, mb: 4, borderRadius: 2 }}>
+        <Alert severity="info">
+          No active session. Start a new session or join an existing one to begin voting.
+        </Alert>
+      </Paper>
+    )
   }
 
   const handleCopyLink = () => {
-    if (session) {
-      const url = getSessionUrl()
-      navigator.clipboard.writeText(url)
-      setShowCopied(true)
-    }
+    const url = getSessionUrl()
+    navigator.clipboard.writeText(url)
+    setShowCopied(true)
   }
 
   const handleShare = async () => {
-    if (session) {
-      const url = getSessionUrl()
-      
-      // Check if the Web Share API is available
-      if (navigator.share) {
-        try {
-          await navigator.share({
-            title: 'Fork-it Session',
-            text: 'Join my restaurant voting session!',
-            url: url,
-          })
-        } catch (error) {
-          console.error('Error sharing:', error)
-          // Fallback to copying to clipboard
-          handleCopyLink()
-        }
-      } else {
+    const url = getSessionUrl()
+    
+    // Check if the Web Share API is available
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: 'Fork-it Session',
+          text: 'Join my restaurant voting session!',
+          url: url,
+        })
+      } catch (error) {
+        console.error('Error sharing:', error)
         // Fallback to copying to clipboard
         handleCopyLink()
       }
+    } else {
+      // Fallback to copying to clipboard
+      handleCopyLink()
     }
   }
 
