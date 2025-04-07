@@ -91,6 +91,7 @@ export const useVoting = () => {
     }
   }
 
+  // Load session from URL on mount
   useEffect(() => {
     const loadSession = async () => {
       // Skip if we're already loading
@@ -182,7 +183,18 @@ export const useVoting = () => {
           console.log(`Updated votes for restaurant ${restaurantId}: ${updatedVote.upvotes.length} upvotes, ${updatedVote.downvotes.length} downvotes`)
         }
         
-        setSession(updatedSession)
+        // IMPORTANT: Preserve the original session ID even if the server returns a different one
+        if (updatedSession.id !== newSession.id) {
+          console.log('Server returned different session ID, preserving original:', newSession.id)
+          const preservedSession = {
+            ...updatedSession,
+            id: newSession.id
+          }
+          setSession(preservedSession)
+        } else {
+          setSession(updatedSession)
+        }
+        
         return
       }
       
@@ -202,7 +214,7 @@ export const useVoting = () => {
         console.log(`Updated votes for restaurant ${restaurantId}: ${updatedVote.upvotes.length} upvotes, ${updatedVote.downvotes.length} downvotes`)
       }
       
-      // If the server returned a different session ID, preserve the original one
+      // IMPORTANT: Preserve the original session ID even if the server returns a different one
       if (updatedSession.id !== originalSessionId) {
         console.log('Server returned different session ID, preserving original:', originalSessionId)
         // Create a new session object with the original ID but updated votes
