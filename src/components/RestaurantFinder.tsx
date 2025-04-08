@@ -12,12 +12,19 @@ const RestaurantFinder = () => {
   const { session, isLoading: isSessionLoading, error: sessionError } = useVoting()
   const [restaurants, setRestaurants] = useState<Restaurant[]>([])
   const [error, setError] = useState<string | null>(null)
+  const [errorDetails, setErrorDetails] = useState<string | null>(null)
 
   useEffect(() => {
     const fetchRestaurants = async () => {
       if (!location || !session) return
 
       try {
+        console.log('Fetching restaurants with params:', {
+          latitude: location.latitude,
+          longitude: location.longitude,
+          radius: 1500
+        })
+
         const response = await fetch(`${import.meta.env.VITE_API_URL}/places/nearby`, {
           method: 'POST',
           headers: {
@@ -36,14 +43,22 @@ const RestaurantFinder = () => {
         })
 
         if (!response.ok) {
-          throw new Error('Failed to fetch restaurants')
+          const errorData = await response.json()
+          console.error('Error response:', errorData)
+          throw new Error(errorData.error || 'Failed to fetch restaurants')
         }
 
         const data = await response.json()
+        console.log('Restaurants response:', data)
         setRestaurants(data.results || [])
+        setError(null)
+        setErrorDetails(null)
       } catch (err) {
         console.error('Error fetching restaurants:', err)
         setError(err instanceof Error ? err.message : 'An error occurred')
+        if (err instanceof Error && 'details' in err) {
+          setErrorDetails((err as any).details)
+        }
       }
     }
 
@@ -71,7 +86,7 @@ const RestaurantFinder = () => {
   if (sessionError) {
     return (
       <div className="text-center p-4">
-        <p className="text-red-500">{sessionError}</p>
+        <p className="text-red-500 mb-4">{sessionError}</p>
         <Button onClick={() => window.location.reload()}>Retry</Button>
       </div>
     )
@@ -81,6 +96,9 @@ const RestaurantFinder = () => {
     return (
       <div className="text-center p-4">
         <p className="text-red-500 mb-4">{error}</p>
+        {errorDetails && (
+          <p className="text-gray-600 mb-4 text-sm">{errorDetails}</p>
+        )}
         <Button onClick={() => window.location.reload()}>Retry</Button>
       </div>
     )
