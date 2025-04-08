@@ -383,6 +383,7 @@ export default {
       else if (path === '/places/nearby' && request.method === 'POST') {
         // Handle Google Places API requests
         if (!GOOGLE_PLACES_API_KEY) {
+          console.error('Google Places API key is not configured');
           return new Response(JSON.stringify({ error: 'Google Places API key is not configured' }), {
             status: 500,
             headers: {
@@ -393,8 +394,10 @@ export default {
         }
         
         const { latitude, longitude, radius, filters } = await request.json();
+        console.log('Received request with params:', { latitude, longitude, radius, filters });
         
         if (!latitude || !longitude || !radius) {
+          console.error('Missing required parameters:', { latitude, longitude, radius });
           return new Response(JSON.stringify({ error: 'Missing required parameters' }), {
             status: 400,
             headers: {
@@ -418,13 +421,20 @@ export default {
           queryParams.append('maxprice', '4');
         }
         
+        const placesApiUrl = `https://maps.googleapis.com/maps/api/place/nearbysearch/json?${queryParams.toString()}`;
+        console.log('Making request to Google Places API:', placesApiUrl);
+        
         // Make the API request to Google Places API
-        const response = await fetch(
-          `https://maps.googleapis.com/maps/api/place/nearbysearch/json?${queryParams.toString()}`
-        );
+        const response = await fetch(placesApiUrl);
         
         if (!response.ok) {
-          return new Response(JSON.stringify({ error: 'Failed to fetch restaurants from Google Places API' }), {
+          console.error('Google Places API request failed:', response.status, response.statusText);
+          const errorText = await response.text();
+          console.error('Error response:', errorText);
+          return new Response(JSON.stringify({ 
+            error: 'Failed to fetch restaurants from Google Places API',
+            details: errorText
+          }), {
             status: 500,
             headers: {
               'Content-Type': 'application/json',
@@ -434,9 +444,14 @@ export default {
         }
         
         const data = await response.json();
+        console.log('Google Places API response status:', data.status);
         
         if (data.status !== 'OK') {
-          return new Response(JSON.stringify({ error: `Google Places API error: ${data.status}` }), {
+          console.error('Google Places API error:', data.status, data.error_message);
+          return new Response(JSON.stringify({ 
+            error: `Google Places API error: ${data.status}`,
+            details: data.error_message
+          }), {
             status: 500,
             headers: {
               'Content-Type': 'application/json',
@@ -482,6 +497,8 @@ export default {
             geometry: place.geometry,
             types: place.types || [],
           }));
+        
+        console.log(`Found ${results.length} restaurants after filtering`);
         
         return new Response(JSON.stringify({ results }), {
           headers: {
