@@ -8,7 +8,7 @@ import { Loader2 } from 'lucide-react'
 import { AddressInput } from './AddressInput'
 
 const RestaurantFinder = () => {
-  const { location, isLoading: isLocationLoading, error: locationError, refreshLocation } = useLocation()
+  const { location, isLoading: isLocationLoading, error: locationError } = useLocation()
   const { session, isLoading: isSessionLoading, error: sessionError } = useVoting()
   const [restaurants, setRestaurants] = useState<Restaurant[]>([])
   const [error, setError] = useState<string | null>(null)
