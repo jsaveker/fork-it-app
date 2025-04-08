@@ -1,4 +1,4 @@
-import React, { createContext, useState, useCallback, useEffect } from 'react';
+import React, { createContext, useState, useCallback, useEffect, useContext } from 'react';
 import { LocationData } from '../types';
 
 export interface LocationContextType {
@@ -10,6 +10,14 @@ export interface LocationContextType {
 }
 
 export const LocationContext = createContext<LocationContextType | null>(null);
+
+export const useLocation = () => {
+  const context = useContext(LocationContext);
+  if (!context) {
+    throw new Error('useLocation must be used within a LocationProvider');
+  }
+  return context;
+};
 
 export const LocationProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [location, setLocationState] = useState<LocationData | null>(null);
