@@ -15,16 +15,23 @@ export const AddressInput: React.FC = () => {
   const { setLocation, isLoading, error } = useLocation();
   const [address, setAddress] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [apiError, setApiError] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const autocompleteRef = useRef<any>(null);
 
   useEffect(() => {
+    if (!GOOGLE_PLACES_API_KEY) {
+      setApiError('Google Places API key is not configured');
+      return;
+    }
+
     // Load the Google Places API script
     const script = document.createElement('script');
-    script.src = `https://maps.googleapis.com/maps/api/js?key=${GOOGLE_PLACES_API_KEY}&libraries=places`;
+    script.src = `https://maps.googleapis.com/maps/api/js?key=${GOOGLE_PLACES_API_KEY}&libraries=places&loading=async`;
     script.async = true;
     script.defer = true;
     script.onload = initializeAutocomplete;
+    script.onerror = () => setApiError('Failed to load Google Places API');
     document.head.appendChild(script);
 
     return () => {
@@ -34,7 +41,12 @@ export const AddressInput: React.FC = () => {
   }, []);
 
   const initializeAutocomplete = () => {
-    if (inputRef.current && window.google) {
+    if (!inputRef.current || !window.google) {
+      setApiError('Failed to initialize Google Places API');
+      return;
+    }
+
+    try {
       // Create the PlaceAutocompleteElement
       const autocomplete = new window.google.maps.places.PlaceAutocompleteElement({
         inputElement: inputRef.current,
@@ -45,12 +57,15 @@ export const AddressInput: React.FC = () => {
       autocompleteRef.current = autocomplete;
 
       // Add event listener for place selection
-      autocomplete.addListener('place_changed', () => {
+      autocomplete.addEventListener('place_changed', () => {
         const place = autocomplete.getPlace();
         if (place.geometry) {
           setAddress(place.formatted_address);
         }
       });
+    } catch (err) {
+      console.error('Error initializing autocomplete:', err);
+      setApiError('Failed to initialize address autocomplete');
     }
   };
 
@@ -59,6 +74,7 @@ export const AddressInput: React.FC = () => {
     if (!address) return;
 
     setIsSubmitting(true);
+    setApiError(null);
     try {
       // Use the Google Geocoding API to get coordinates from the address
       const geocoder = new window.google.maps.Geocoder();
@@ -75,13 +91,25 @@ export const AddressInput: React.FC = () => {
           longitude: lng,
           address: result.results[0].formatted_address,
         });
+      } else {
+        throw new Error('No results found for this address');
       }
     } catch (err) {
       console.error('Error geocoding address:', err);
+      setApiError(err instanceof Error ? err.message : 'Failed to geocode address');
     } finally {
       setIsSubmitting(false);
     }
   };
+
+  if (apiError) {
+    return (
+      <Box sx={{ width: '100%', maxWidth: 400, textAlign: 'center' }}>
+        <p className="text-red-500 mb-4">{apiError}</p>
+        <Button onClick={() => window.location.reload()}>Retry</Button>
+      </Box>
+    );
+  }
 
   return (
     <Box component="form" onSubmit={handleSubmit} sx={{ width: '100%', maxWidth: 400 }}>
