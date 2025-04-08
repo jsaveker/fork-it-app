@@ -1,10 +1,12 @@
 import { useContext } from 'react';
-import { LocationContext, LocationContextType } from '../contexts/LocationContext';
+import { LocationContext, LocationContextType, LocationProvider } from '../contexts/LocationContext';
 
 export interface LocationData {
+  latitude: number;
+  longitude: number;
   lat: number;
   lng: number;
-  address: string;
+  address?: string;
 }
 
 export function useLocation(): LocationContextType {
@@ -13,4 +15,6 @@ export function useLocation(): LocationContextType {
     throw new Error('useLocation must be used within a LocationProvider');
   }
   return context;
-} 
+}
+
+export { LocationProvider }; 
