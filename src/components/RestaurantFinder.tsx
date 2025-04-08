@@ -1,14 +1,14 @@
 import { useState, useEffect } from 'react'
 import { Button } from '@mui/material'
 import { RestaurantCard } from './RestaurantCard'
-import { useLocation } from '../hooks/useLocation'
+import { useLocation } from '../contexts/LocationContext'
 import { useVoting } from '../hooks/useVoting'
 import { Restaurant } from '../types'
 import { Loader2 } from 'lucide-react'
 import { AddressInput } from './AddressInput'
 
 const RestaurantFinder = () => {
-  const { location, isLoading: isLocationLoading, error: locationError } = useLocation()
+  const { location, isLoading: isLocationLoading, error: locationError, refreshLocation } = useLocation()
   const { session, isLoading: isSessionLoading, error: sessionError } = useVoting()
   const [restaurants, setRestaurants] = useState<Restaurant[]>([])
   const [error, setError] = useState<string | null>(null)
@@ -18,7 +18,7 @@ const RestaurantFinder = () => {
       if (!location || !session) return
 
       try {
-        const response = await fetch(`/api/restaurants?lat=${location.latitude}&lng=${location.longitude}&radius=1500`)
+        const response = await fetch(`${import.meta.env.VITE_API_URL}/restaurants?lat=${location.latitude}&lng=${location.longitude}&radius=1500`)
         if (!response.ok) {
           throw new Error('Failed to fetch restaurants')
         }
@@ -43,8 +43,9 @@ const RestaurantFinder = () => {
   if (locationError) {
     return (
       <div className="text-center p-4">
-        <p className="text-red-500">{locationError}</p>
-        <Button onClick={() => window.location.reload()}>Retry</Button>
+        <p className="text-red-500 mb-4">{locationError}</p>
+        <p className="mb-4">Please enter your address to find restaurants near you.</p>
+        <AddressInput />
       </div>
     )
   }
