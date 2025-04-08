@@ -490,6 +490,66 @@ export default {
           },
         });
       }
+      else if (path === '/restaurants' && request.method === 'GET') {
+        // Get required parameters
+        const { lat, lng, radius } = params;
+        
+        if (!lat || !lng) {
+          return new Response(JSON.stringify({ error: 'Latitude and longitude are required' }), {
+            status: 400,
+            headers: {
+              'Content-Type': 'application/json',
+              ...corsHeaders,
+            },
+          });
+        }
+
+        // Use Google Places API to search for restaurants
+        const searchUrl = `https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${lat},${lng}&radius=${radius || 1500}&type=restaurant&key=${GOOGLE_PLACES_API_KEY}`;
+        const searchResponse = await fetch(searchUrl);
+        
+        if (!searchResponse.ok) {
+          return new Response(JSON.stringify({ error: 'Failed to fetch restaurants' }), {
+            status: 500,
+            headers: {
+              'Content-Type': 'application/json',
+              ...corsHeaders,
+            },
+          });
+        }
+        
+        const searchData = await searchResponse.json();
+        
+        if (searchData.status !== 'OK') {
+          return new Response(JSON.stringify({ error: 'No restaurants found' }), {
+            status: 404,
+            headers: {
+              'Content-Type': 'application/json',
+              ...corsHeaders,
+            },
+          });
+        }
+        
+        // Transform and return the results
+        const restaurants = searchData.results.map(place => ({
+          id: place.place_id,
+          name: place.name,
+          vicinity: place.vicinity,
+          rating: place.rating,
+          user_ratings_total: place.user_ratings_total,
+          price_level: place.price_level,
+          photos: place.photos,
+          geometry: place.geometry,
+          types: place.types,
+        }));
+        
+        return new Response(JSON.stringify(restaurants), {
+          headers: {
+            'Content-Type': 'application/json',
+            ...corsHeaders,
+          },
+        });
+      }
       
       // Return 404 for any other paths
       return new Response(JSON.stringify({ error: 'Not found' }), {
