@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { GroupSession, RestaurantVote } from '../types'
 import { getUpvotes, getDownvotes, upvoteRestaurant, downvoteRestaurant } from '../services/restaurantService.js'
 
@@ -19,9 +19,10 @@ export const useVoting = () => {
   const [isLoading, setIsLoading] = useState(false)
   const [userId] = useState<string>(() => crypto.randomUUID())
   const [sessionLoadAttempted, setSessionLoadAttempted] = useState(false)
+  const [sessionLoadInProgress, setSessionLoadInProgress] = useState(false)
 
   // Load session by ID
-  const loadSessionById = async (sessionId: string) => {
+  const loadSessionById = useCallback(async (sessionId: string) => {
     if (!sessionId) {
       console.error('Cannot load session: No session ID provided')
       return null
@@ -32,8 +33,14 @@ export const useVoting = () => {
       return session
     }
 
+    if (sessionLoadInProgress) {
+      console.log('Session load already in progress')
+      return null
+    }
+
     try {
       setIsLoading(true)
+      setSessionLoadInProgress(true)
       console.log('Loading session with ID:', sessionId)
       const response = await fetch(`${API_BASE_URL}/sessions/${sessionId}`)
       if (!response.ok) {
@@ -66,8 +73,9 @@ export const useVoting = () => {
       return null
     } finally {
       setIsLoading(false)
+      setSessionLoadInProgress(false)
     }
-  }
+  }, [session, sessionLoadInProgress])
 
   // Check for session ID in URL on initialization
   useEffect(() => {
@@ -99,10 +107,10 @@ export const useVoting = () => {
     };
     
     loadSessionFromUrl();
-  }, [window.location.search]); // Re-run when URL search params change
+  }, [loadSessionById]);
 
   // Create a new session
-  const createSession = async (name: string = 'New Session') => {
+  const createSession = useCallback(async (name: string = 'New Session') => {
     try {
       setIsLoading(true)
       console.log('Creating session with name:', name)
@@ -135,10 +143,10 @@ export const useVoting = () => {
     } finally {
       setIsLoading(false)
     }
-  }
+  }, [])
 
   // Get session URL
-  const getSessionUrl = (): string => {
+  const getSessionUrl = useCallback((): string => {
     if (!session) return ''
     
     // Create a URL with the session ID
@@ -156,10 +164,10 @@ export const useVoting = () => {
     })
     
     return url.toString()
-  }
+  }, [session])
 
   // Get votes for a restaurant
-  const getVotes = async (restaurantId: string): Promise<VoteCount> => {
+  const getVotes = useCallback(async (restaurantId: string): Promise<VoteCount> => {
     // First check if we have the votes in the session
     if (session && session.votes) {
       const sessionVote = session.votes.find((vote: RestaurantVote) => vote.restaurantId === restaurantId)
@@ -196,10 +204,10 @@ export const useVoting = () => {
       console.error('Error getting votes:', err)
       return { upvotes: 0, downvotes: 0 }
     }
-  }
+  }, [session, votesCache])
 
   // Handle vote action
-  const handleVote = async (restaurantId: string, isUpvote: boolean) => {
+  const handleVote = useCallback(async (restaurantId: string, isUpvote: boolean) => {
     if (!session) {
       console.error('Cannot vote without an active session')
       return
@@ -210,70 +218,10 @@ export const useVoting = () => {
     } else {
       await voteDown(restaurantId)
     }
-  }
-
-  // Batch load votes for multiple restaurants
-  const batchLoadVotes = async (restaurantIds: string[]): Promise<Record<string, VoteCount>> => {
-    const uniqueIds = [...new Set(restaurantIds)]
-    const newVotes: Record<string, VoteCount> = {}
-    
-    // First check session votes
-    if (session && session.votes) {
-      uniqueIds.forEach(id => {
-        const sessionVote = session.votes.find((vote: RestaurantVote) => vote.restaurantId === id)
-        if (sessionVote) {
-          // Always treat upvotes and downvotes as arrays
-          const upvotes = Array.isArray(sessionVote.upvotes) ? sessionVote.upvotes : []
-          const downvotes = Array.isArray(sessionVote.downvotes) ? sessionVote.downvotes : []
-          
-          newVotes[id] = {
-            upvotes: upvotes.length,
-            downvotes: downvotes.length
-          }
-        }
-      })
-    }
-    
-    // Only load votes for restaurants not in cache or session
-    const idsToLoad = uniqueIds.filter(id => !votesCache[id] && !newVotes[id])
-    
-    if (idsToLoad.length === 0) return { ...votesCache, ...newVotes }
-    
-    try {
-      const upvotesPromises = idsToLoad.map(id => getUpvotes(session?.id || '', id))
-      const downvotesPromises = idsToLoad.map(id => getDownvotes(session?.id || '', id))
-      
-      const upvotesResults = await Promise.all(upvotesPromises)
-      const downvotesResults = await Promise.all(downvotesPromises)
-      
-      idsToLoad.forEach((id, index) => {
-        newVotes[id] = {
-          upvotes: upvotesResults[index].length,
-          downvotes: downvotesResults[index].length
-        }
-      })
-      
-      setVotesCache((prev: Record<string, VoteCount>) => ({ ...prev, ...newVotes }))
-      return { ...votesCache, ...newVotes }
-    } catch (err) {
-      console.error('Error batch loading votes:', err)
-      return { ...votesCache, ...newVotes }
-    }
-  }
-
-  // Modified getAllVotes to handle both single and batch requests
-  const getAllVotes = async (restaurantIdOrIds: string | string[]): Promise<VoteResult> => {
-    // If it's a single restaurant ID
-    if (typeof restaurantIdOrIds === 'string') {
-      return getVotes(restaurantIdOrIds)
-    }
-    
-    // If it's an array of restaurant IDs
-    return batchLoadVotes(restaurantIdOrIds)
-  }
+  }, [session])
 
   // Vote up a restaurant
-  const voteUp = async (restaurantId: string) => {
+  const voteUp = useCallback(async (restaurantId: string) => {
     if (!session) {
       throw new Error('No active session')
     }
@@ -318,10 +266,10 @@ export const useVoting = () => {
       console.error('Error voting up:', err)
       throw err
     }
-  }
+  }, [session, userId, votesCache])
   
   // Vote down a restaurant
-  const voteDown = async (restaurantId: string) => {
+  const voteDown = useCallback(async (restaurantId: string) => {
     if (!session) {
       throw new Error('No active session')
     }
@@ -366,14 +314,14 @@ export const useVoting = () => {
       console.error('Error voting down:', err)
       throw err
     }
-  }
+  }, [session, userId, votesCache])
 
   return { 
     session, 
     error, 
     isLoading, 
     userId,
-    getAllVotes, 
+    getAllVotes: getVotes, 
     voteUp, 
     voteDown,
     loadSessionById,
