@@ -1,4 +1,4 @@
-import { Box, Typography, Slider, FormControl, InputLabel, Select, MenuItem, Chip, OutlinedInput, SelectChangeEvent, Divider } from '@mui/material'
+import { Box, Typography, Slider, Divider } from '@mui/material'
 import { FilterOptions } from '../types'
 import { useState, useEffect } from 'react'
 
@@ -8,13 +8,13 @@ interface FilterPanelProps {
 }
 
 export default function FilterPanel({ filters, onChange }: FilterPanelProps) {
-  const [localPriceLevel, setLocalPriceLevel] = useState<number>(filters.priceLevel[0])
+  const [localMinPrice, setLocalMinPrice] = useState<number>(filters.minPrice)
   const [debounceTimer, setDebounceTimer] = useState<number | null>(null)
 
-  // Update local price level when filters change
+  // Update local price when filters change
   useEffect(() => {
-    setLocalPriceLevel(filters.priceLevel[0])
-  }, [filters.priceLevel])
+    setLocalMinPrice(filters.minPrice)
+  }, [filters.minPrice])
 
   // Update URL when filters change
   useEffect(() => {
@@ -22,33 +22,15 @@ export default function FilterPanel({ filters, onChange }: FilterPanelProps) {
       const url = new URL(window.location.href)
       const params = new URLSearchParams(url.search)
       
-      // Update price parameter
-      if (filters.priceLevel.length > 0) {
-        params.set('price', filters.priceLevel.join(','))
-      } else {
-        params.delete('price')
-      }
+      // Update price parameters
+      params.set('minPrice', filters.minPrice.toString())
+      params.set('maxPrice', filters.maxPrice.toString())
       
       // Update distance parameter
-      if (filters.distance) {
-        params.set('distance', filters.distance.toString())
-      } else {
-        params.delete('distance')
-      }
+      params.set('maxDistance', filters.maxDistance.toString())
       
       // Update rating parameter
-      if (filters.rating) {
-        params.set('rating', filters.rating.toString())
-      } else {
-        params.delete('rating')
-      }
-      
-      // Update cuisine types parameter
-      if (filters.cuisineTypes && filters.cuisineTypes.length > 0) {
-        params.set('cuisine', filters.cuisineTypes.join(','))
-      } else {
-        params.delete('cuisine')
-      }
+      params.set('minRating', filters.minRating.toString())
       
       // Update URL without reloading the page
       const newUrl = `${url.pathname}?${params.toString()}`
@@ -58,17 +40,17 @@ export default function FilterPanel({ filters, onChange }: FilterPanelProps) {
     updateUrlWithFilters()
   }, [filters])
 
-  const handleDistanceChange = (_event: Event, value: number | number[]) => {
-    onChange({ distance: value as number })
+  const handleMaxDistanceChange = (_event: Event, value: number | number[]) => {
+    onChange({ maxDistance: value as number })
   }
 
-  const handleRatingChange = (_event: Event, value: number | number[]) => {
-    onChange({ rating: value as number })
+  const handleMinRatingChange = (_event: Event, value: number | number[]) => {
+    onChange({ minRating: value as number })
   }
 
-  const handlePriceLevelChange = (_event: Event, value: number | number[]) => {
-    const newPriceLevel = value as number
-    setLocalPriceLevel(newPriceLevel)
+  const handleMinPriceChange = (_event: Event, value: number | number[]) => {
+    const newMinPrice = value as number
+    setLocalMinPrice(newMinPrice)
     
     // Clear any existing timer
     if (debounceTimer) {
@@ -77,17 +59,10 @@ export default function FilterPanel({ filters, onChange }: FilterPanelProps) {
     
     // Set a new timer to update the filters after a delay
     const timer = setTimeout(() => {
-      onChange({ priceLevel: [newPriceLevel, 4] })
+      onChange({ minPrice: newMinPrice })
     }, 500) // 500ms delay
     
     setDebounceTimer(timer)
-  }
-
-  const handleCuisineChange = (event: SelectChangeEvent<string[]>) => {
-    const value = event.target.value
-    onChange({
-      cuisineTypes: typeof value === 'string' ? value.split(',') : value,
-    })
   }
 
   return (
@@ -98,17 +73,17 @@ export default function FilterPanel({ filters, onChange }: FilterPanelProps) {
       <Divider sx={{ mb: 2 }} />
       
       <Box sx={{ mb: 3 }}>
-        <Typography gutterBottom>Distance (miles)</Typography>
+        <Typography gutterBottom>Maximum Distance (meters)</Typography>
         <Slider
-          value={filters.distance}
-          onChange={handleDistanceChange}
-          min={1}
-          max={20}
-          step={1}
+          value={filters.maxDistance}
+          onChange={handleMaxDistanceChange}
+          min={1000}
+          max={10000}
+          step={1000}
           marks={[
-            { value: 1, label: '1' },
-            { value: 10, label: '10' },
-            { value: 20, label: '20' },
+            { value: 1000, label: '1km' },
+            { value: 5000, label: '5km' },
+            { value: 10000, label: '10km' },
           ]}
           valueLabelDisplay="auto"
         />
@@ -117,8 +92,8 @@ export default function FilterPanel({ filters, onChange }: FilterPanelProps) {
       <Box sx={{ mb: 3 }}>
         <Typography gutterBottom>Minimum Rating</Typography>
         <Slider
-          value={filters.rating}
-          onChange={handleRatingChange}
+          value={filters.minRating}
+          onChange={handleMinRatingChange}
           min={0}
           max={5}
           step={0.5}
@@ -134,8 +109,8 @@ export default function FilterPanel({ filters, onChange }: FilterPanelProps) {
       <Box sx={{ mb: 3 }}>
         <Typography gutterBottom>Minimum Price Level</Typography>
         <Slider
-          value={localPriceLevel}
-          onChange={handlePriceLevelChange}
+          value={localMinPrice}
+          onChange={handleMinPriceChange}
           min={1}
           max={4}
           step={1}
@@ -148,39 +123,6 @@ export default function FilterPanel({ filters, onChange }: FilterPanelProps) {
           valueLabelDisplay="auto"
         />
       </Box>
-      
-      <FormControl fullWidth sx={{ mb: 2 }}>
-        <InputLabel id="cuisine-types-label">Cuisine Types</InputLabel>
-        <Select
-          labelId="cuisine-types-label"
-          multiple
-          value={filters.cuisineTypes}
-          onChange={handleCuisineChange}
-          input={<OutlinedInput label="Cuisine Types" />}
-          renderValue={(selected) => (
-            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
-              {selected.map((value) => (
-                <Chip key={value} label={value} />
-              ))}
-            </Box>
-          )}
-        >
-          <MenuItem value="American">American</MenuItem>
-          <MenuItem value="Italian">Italian</MenuItem>
-          <MenuItem value="Mexican">Mexican</MenuItem>
-          <MenuItem value="Chinese">Chinese</MenuItem>
-          <MenuItem value="Japanese">Japanese</MenuItem>
-          <MenuItem value="Indian">Indian</MenuItem>
-          <MenuItem value="Thai">Thai</MenuItem>
-          <MenuItem value="Mediterranean">Mediterranean</MenuItem>
-          <MenuItem value="Pizza">Pizza</MenuItem>
-          <MenuItem value="Sushi">Sushi</MenuItem>
-          <MenuItem value="Burgers">Burgers</MenuItem>
-          <MenuItem value="BBQ">BBQ</MenuItem>
-          <MenuItem value="Vegetarian">Vegetarian</MenuItem>
-          <MenuItem value="Vegan">Vegan</MenuItem>
-        </Select>
-      </FormControl>
     </Box>
   )
 } 
