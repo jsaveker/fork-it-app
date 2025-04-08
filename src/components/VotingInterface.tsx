@@ -85,15 +85,16 @@ export const VotingInterface = ({ restaurantId, session }: VotingInterfaceProps)
     }
 
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/sessions/${session.id}/votes`, {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/vote`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
+          sessionId: session.id,
           restaurantId,
           userId,
-          voteType
+          isUpvote: voteType === 'up'
         })
       })
 
@@ -125,8 +126,8 @@ export const VotingInterface = ({ restaurantId, session }: VotingInterfaceProps)
           setUserVote('down')
         }
       }
-    } catch (err) {
-      console.error('Error voting:', err)
+    } catch (error) {
+      console.error('Error voting:', error)
     }
   }
 
