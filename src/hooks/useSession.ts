@@ -123,6 +123,15 @@ export function useSession() {
     return url.toString()
   }, [session])
 
+  // Prevent unnecessary session loading attempts
+  const getSession = useCallback(async () => {
+    if (!session) {
+      console.log('No active session')
+      return null
+    }
+    return session
+  }, [session])
+
   return {
     session,
     isLoading,
@@ -130,6 +139,7 @@ export function useSession() {
     createSession,
     getSessionUrl,
     setSession,
-    loadSessionById
+    loadSessionById,
+    getSession
   }
 } 
