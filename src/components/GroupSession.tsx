@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import {
   Box,
   Typography,
@@ -20,7 +20,6 @@ import { useParams, useLocation } from 'react-router-dom'
 export default function GroupSession() {
   const { session, getSessionUrl, isLoading } = useVotingContext()
   const [showCopied, setShowCopied] = useState(false)
-  const [sessionLoadAttempted, setSessionLoadAttempted] = useState(false)
   const { sessionId: pathSessionId } = useParams<{ sessionId: string }>()
   const location = useLocation()
   
@@ -41,11 +40,6 @@ export default function GroupSession() {
   console.log('Checking for session ID in URL:', getSessionId())
   console.log('Current session:', session)
 
-  // Mark session load as attempted after first render
-  useEffect(() => {
-    setSessionLoadAttempted(true)
-  }, [])
-
   // Show loading state while loading session
   if (isLoading) {
     return (
@@ -55,22 +49,24 @@ export default function GroupSession() {
     )
   }
 
-  // Show message if no session and we've attempted to load
-  if (!session && sessionLoadAttempted) {
+  // Show message if no session and we have a session ID in the URL
+  if (!session && getSessionId()) {
     return (
       <Paper elevation={2} sx={{ p: 3, mb: 4, borderRadius: 2 }}>
         <Alert severity="info">
-          No active session. Start a new session or join an existing one to begin voting.
+          Loading session...
         </Alert>
       </Paper>
     )
   }
 
-  // Show loading state if session is undefined and we haven't attempted to load yet
-  if (!session && !sessionLoadAttempted) {
+  // Show message if no session and no session ID in the URL
+  if (!session && !getSessionId()) {
     return (
-      <Paper elevation={2} sx={{ p: 3, mb: 4, borderRadius: 2, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-        <CircularProgress />
+      <Paper elevation={2} sx={{ p: 3, mb: 4, borderRadius: 2 }}>
+        <Alert severity="info">
+          No active session. Start a new session or join an existing one to begin voting.
+        </Alert>
       </Paper>
     )
   }
