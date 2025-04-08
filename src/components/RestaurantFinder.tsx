@@ -1,207 +1,183 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { Button, Typography, Paper } from '@mui/material'
 import { RestaurantCard } from './RestaurantCard'
 import { useLocation } from '../contexts/LocationContext'
 import { useVoting } from '../hooks/useVoting'
-import { Restaurant } from '../types'
+import { searchNearbyRestaurants } from '../services/googlePlacesApi'
+import { Restaurant } from '../types/Restaurant'
+import { useFilters } from '../hooks/useFilters'
+import { useSession } from '../hooks/useSession'
+import { useDebounce } from '../hooks/useDebounce'
 import { Loader2 } from 'lucide-react'
 import { AddressInput } from './AddressInput'
 
-const RestaurantFinder = () => {
-  const { location, isLoading: isLocationLoading, error: locationError } = useLocation()
-  const { session, isLoading: isSessionLoading, error: sessionError, createSession } = useVoting()
+export const RestaurantFinder = () => {
+  const { location, error: locationError } = useLocation()
+  const { session, createSession, getSessionUrl } = useSession()
+  const { filters } = useFilters()
   const [restaurants, setRestaurants] = useState<Restaurant[]>([])
+  const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [errorDetails, setErrorDetails] = useState<string | null>(null)
-  const [isFetching, setIsFetching] = useState(false)
+  const [radius, setRadius] = useState(1500)
+  const [isInitialLoad, setIsInitialLoad] = useState(true)
+  const [hasAttemptedLoad, setHasAttemptedLoad] = useState(false)
+  const lastLocationRef = useRef<{ lat: number; lng: number } | null>(null)
+  const lastFiltersRef = useRef(filters)
+  const lastRadiusRef = useRef(radius)
 
-  // Create a session if one doesn't exist
-  const ensureSession = useCallback(async () => {
-    if (!session) {
-      console.log('No session found, creating a new one')
-      try {
-        await createSession('New Session')
-        return true
-      } catch (err) {
-        console.error('Failed to create session:', err)
-        setError('Failed to create session')
-        return false
-      }
-    }
-    return true
-  }, [session, createSession])
+  // Debounce the location and filters
+  const debouncedLocation = useDebounce(location, 1000)
+  const debouncedFilters = useDebounce(filters, 1000)
+  const debouncedRadius = useDebounce(radius, 1000)
 
-  // Fetch restaurants with proper dependency management
   const fetchRestaurants = useCallback(async () => {
-    if (!location || isFetching) {
+    if (!debouncedLocation?.latitude || !debouncedLocation?.longitude) {
+      console.log('No location available yet')
       return
     }
 
-    setIsFetching(true)
-    
+    // Check if location or filters have actually changed
+    const locationChanged = 
+      lastLocationRef.current?.lat !== debouncedLocation.latitude || 
+      lastLocationRef.current?.lng !== debouncedLocation.longitude
+
+    const filtersChanged = JSON.stringify(lastFiltersRef.current) !== JSON.stringify(debouncedFilters)
+    const radiusChanged = lastRadiusRef.current !== debouncedRadius
+
+    if (!locationChanged && !filtersChanged && !radiusChanged && !isInitialLoad) {
+      console.log('Skipping fetch - no changes in location, filters, or radius')
+      return
+    }
+
     try {
-      // Ensure we have a session
-      const hasSession = await ensureSession()
-      if (!hasSession) {
-        setIsFetching(false)
-        return
-      }
-
-      console.log('Location data:', {
-        latitude: location.latitude,
-        longitude: location.longitude,
-        accuracy: location.accuracy,
-        address: location.address
-      })
-
-      // Validate location data
-      if (typeof location.latitude !== 'number' || typeof location.longitude !== 'number') {
-        console.error('Invalid location data:', location)
-        throw new Error('Invalid location coordinates')
-      }
-
-      // Log the exact request being made
-      const requestBody = {
-        latitude: location.latitude,
-        longitude: location.longitude,
-        radius: 1500,
-        filters: {
-          rating: 0,
-          priceLevel: [1, 2, 3, 4],
-          cuisineTypes: []
-        }
-      }
-      console.log('Making API request with body:', requestBody)
-
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/places/nearby`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(requestBody)
-      })
-
-      if (!response.ok) {
-        const errorData = await response.json()
-        console.error('Error response:', errorData)
-        throw new Error(errorData.error || 'Failed to fetch restaurants')
-      }
-
-      const data = await response.json()
-      console.log('API Response:', {
-        status: data.status,
-        resultsCount: data.results?.length || 0,
-        firstResult: data.results?.[0] ? {
-          id: data.results[0].id,
-          name: data.results[0].name,
-          vicinity: data.results[0].vicinity
-        } : null
-      })
-      
-      if (data.status === 'ZERO_RESULTS') {
-        console.log('No restaurants found in the specified area')
-        setRestaurants([])
-        setError(null)
-        setErrorDetails(null)
-        return
-      }
-      
-      setRestaurants(data.results || [])
+      setLoading(true)
       setError(null)
-      setErrorDetails(null)
+      console.log('Fetching restaurants with location:', debouncedLocation)
+      
+      const results = await searchNearbyRestaurants({
+        latitude: debouncedLocation.latitude,
+        longitude: debouncedLocation.longitude,
+        radius: debouncedRadius,
+        filters: debouncedFilters
+      })
+      
+      console.log('Received results:', results)
+      setRestaurants(results)
+      
+      // Update refs with current values
+      lastLocationRef.current = {
+        lat: debouncedLocation.latitude,
+        lng: debouncedLocation.longitude
+      }
+      lastFiltersRef.current = debouncedFilters
+      lastRadiusRef.current = debouncedRadius
+      setIsInitialLoad(false)
     } catch (err) {
       console.error('Error fetching restaurants:', err)
-      setError(err instanceof Error ? err.message : 'An error occurred')
-      if (err instanceof Error && 'details' in err) {
-        setErrorDetails((err as any).details)
-      }
+      setError('Failed to load restaurants. Please try again.')
     } finally {
-      setIsFetching(false)
+      setLoading(false)
+      setHasAttemptedLoad(true)
     }
-  }, [location, ensureSession, isFetching])
+  }, [debouncedLocation, debouncedFilters, debouncedRadius, isInitialLoad])
 
-  // Only fetch restaurants when location changes
+  // Effect to handle initial load and location/filter changes
   useEffect(() => {
-    if (location) {
+    if (debouncedLocation && !hasAttemptedLoad) {
       fetchRestaurants()
     }
-  }, [location, fetchRestaurants])
+  }, [debouncedLocation, debouncedFilters, debouncedRadius, fetchRestaurants, hasAttemptedLoad])
 
-  if (isLocationLoading || isSessionLoading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <Loader2 className="h-8 w-8 animate-spin" />
-      </div>
-    )
+  const handleStartNewSession = async () => {
+    try {
+      const newSession = await createSession()
+      if (newSession) {
+        // Update URL with new session ID
+        const url = new URL(window.location.href)
+        url.searchParams.set('session', newSession.id)
+        window.history.pushState({}, '', url)
+      }
+    } catch (err) {
+      console.error('Error creating new session:', err)
+      setError('Failed to create new session')
+    }
+  }
+
+  const handleShareSession = () => {
+    const sessionUrl = getSessionUrl()
+    if (sessionUrl) {
+      navigator.clipboard.writeText(sessionUrl)
+        .then(() => {
+          // You might want to show a success message here
+          console.log('Session URL copied to clipboard')
+        })
+        .catch(err => {
+          console.error('Failed to copy URL:', err)
+          setError('Failed to copy session URL')
+        })
+    }
   }
 
   if (locationError) {
     return (
-      <div className="text-center p-4">
-        <p className="text-red-500 mb-4">{locationError}</p>
-        <p className="mb-4">Please enter your address to find restaurants near you.</p>
-        <AddressInput />
-      </div>
-    )
-  }
-
-  if (sessionError) {
-    return (
-      <div className="text-center p-4">
-        <p className="text-red-500 mb-4">{sessionError}</p>
-        <Button onClick={() => window.location.reload()}>Retry</Button>
-      </div>
-    )
-  }
-
-  if (error) {
-    return (
-      <div className="text-center p-4">
-        <p className="text-red-500 mb-4">{error}</p>
-        {errorDetails && (
-          <p className="text-gray-600 mb-4 text-sm">{errorDetails}</p>
-        )}
-        <Button onClick={() => window.location.reload()}>Retry</Button>
-      </div>
-    )
-  }
-
-  if (!restaurants.length) {
-    return (
-      <div className="text-center p-4">
-        <p className="mb-4">No restaurants found in your area.</p>
-        <AddressInput />
-      </div>
+      <Paper sx={{ p: 2, m: 2 }}>
+        <Typography color="error">
+          Error: {locationError}
+        </Typography>
+      </Paper>
     )
   }
 
   return (
     <div>
-      <Paper elevation={2} sx={{ p: 3, mb: 4, borderRadius: 2 }}>
-        <Typography variant="h6" gutterBottom>
-          Restaurants Near You
-        </Typography>
-        <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-          {restaurants.length} restaurants found
-        </Typography>
-        <Button 
-          variant="contained" 
-          color="primary" 
-          onClick={fetchRestaurants}
-          disabled={isFetching}
-          sx={{ mb: 2 }}
-        >
-          {isFetching ? 'Refreshing...' : 'Refresh Results'}
-        </Button>
+      <Paper sx={{ p: 2, m: 2 }}>
+        {!session ? (
+          <Button 
+            variant="contained" 
+            color="primary" 
+            onClick={handleStartNewSession}
+            disabled={loading}
+          >
+            Start New Voting Session
+          </Button>
+        ) : (
+          <Button 
+            variant="outlined" 
+            color="primary" 
+            onClick={handleShareSession}
+            disabled={loading}
+          >
+            Share Session
+          </Button>
+        )}
       </Paper>
-      
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {restaurants.map((restaurant) => (
-          <RestaurantCard key={restaurant.id} restaurant={restaurant} />
-        ))}
-      </div>
+
+      {error && (
+        <Paper sx={{ p: 2, m: 2 }}>
+          <Typography color="error">
+            {error}
+          </Typography>
+        </Paper>
+      )}
+
+      {loading ? (
+        <Paper sx={{ p: 2, m: 2 }}>
+          <Typography>Loading restaurants...</Typography>
+        </Paper>
+      ) : restaurants.length > 0 ? (
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '1rem', padding: '1rem' }}>
+          {restaurants.map(restaurant => (
+            <RestaurantCard 
+              key={restaurant.id} 
+              restaurant={restaurant}
+            />
+          ))}
+        </div>
+      ) : hasAttemptedLoad ? (
+        <Paper sx={{ p: 2, m: 2 }}>
+          <Typography>No restaurants found. Try adjusting your filters or increasing the search radius.</Typography>
+        </Paper>
+      ) : null}
     </div>
   )
-}
-
-export default RestaurantFinder 
+} 
