@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useLocation } from '../contexts/LocationContext';
+import { useVoting } from '../hooks/useVoting';
 import { Button, TextField, Box, CircularProgress, Autocomplete } from '@mui/material';
 
 interface Prediction {
@@ -9,6 +10,7 @@ interface Prediction {
 
 export const AddressInput: React.FC = () => {
   const { setLocation, isLoading, error } = useLocation();
+  const { session, createSession } = useVoting();
   const [address, setAddress] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [apiError, setApiError] = useState<string | null>(null);
@@ -79,6 +81,11 @@ export const AddressInput: React.FC = () => {
       
       const data = await response.json();
       if (data.latitude && data.longitude) {
+        // Create a session if one doesn't exist
+        if (!session) {
+          await createSession('New Session');
+        }
+        
         await setLocation({
           latitude: data.latitude,
           longitude: data.longitude,
