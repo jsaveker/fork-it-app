@@ -16,14 +16,28 @@ const RestaurantFinder = () => {
 
   useEffect(() => {
     const fetchRestaurants = async () => {
-      if (!location || !session) return
+      if (!location || !session) {
+        console.log('Missing required data:', { location, session })
+        return
+      }
 
       try {
         console.log('Fetching restaurants with params:', {
           latitude: location.latitude,
           longitude: location.longitude,
-          radius: 1500
+          radius: 1500,
+          filters: {
+            rating: 0,
+            priceLevel: [1, 2, 3, 4],
+            cuisineTypes: []
+          }
         })
+
+        // Validate location data
+        if (typeof location.latitude !== 'number' || typeof location.longitude !== 'number') {
+          console.error('Invalid location data:', location)
+          throw new Error('Invalid location coordinates')
+        }
 
         const response = await fetch(`${import.meta.env.VITE_API_URL}/places/nearby`, {
           method: 'POST',
@@ -50,6 +64,15 @@ const RestaurantFinder = () => {
 
         const data = await response.json()
         console.log('Restaurants response:', data)
+        
+        if (data.status === 'ZERO_RESULTS') {
+          console.log('No restaurants found in the specified area')
+          setRestaurants([])
+          setError(null)
+          setErrorDetails(null)
+          return
+        }
+        
         setRestaurants(data.results || [])
         setError(null)
         setErrorDetails(null)

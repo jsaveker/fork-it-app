@@ -446,6 +446,21 @@ export default {
         const data = await response.json();
         console.log('Google Places API response status:', data.status);
         
+        // Handle ZERO_RESULTS as a valid response with empty results
+        if (data.status === 'ZERO_RESULTS') {
+          console.log('No restaurants found in the specified area');
+          return new Response(JSON.stringify({ 
+            results: [],
+            status: 'ZERO_RESULTS'
+          }), {
+            headers: {
+              'Content-Type': 'application/json',
+              ...corsHeaders,
+            },
+          });
+        }
+        
+        // Handle other non-OK statuses as errors
         if (data.status !== 'OK') {
           console.error('Google Places API error:', data.status, data.error_message);
           return new Response(JSON.stringify({ 
