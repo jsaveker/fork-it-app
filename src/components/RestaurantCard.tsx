@@ -1,4 +1,3 @@
-import React from 'react'
 import {
   Card,
   CardContent,
@@ -8,15 +7,16 @@ import {
   Chip,
   Rating,
 } from '@mui/material'
-import { Restaurant } from '../types'
+import { Restaurant } from '../types/Restaurant'
 import { VotingInterface } from './VotingInterface'
-import { DirectionsWalk, AttachMoney } from '@mui/icons-material'
+import { GroupSession } from '../types/GroupSession'
 
 interface RestaurantCardProps {
   restaurant: Restaurant
+  session: GroupSession | null
 }
 
-export const RestaurantCard: React.FC<RestaurantCardProps> = ({ restaurant }) => {
+export const RestaurantCard = ({ restaurant, session }: RestaurantCardProps) => {
   // Format price level as dollar signs
   const formatPriceLevel = (level: number) => {
     return '$'.repeat(level)
@@ -54,17 +54,15 @@ export const RestaurantCard: React.FC<RestaurantCardProps> = ({ restaurant }) =>
         <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', mb: 1 }}>
           {restaurant.price_level > 0 && (
             <Chip 
-              icon={<AttachMoney />} 
               label={formatPriceLevel(restaurant.price_level)} 
               size="small" 
-              variant="outlined" 
+              sx={{ mr: 1 }} 
             />
           )}
           
           {restaurant.types && restaurant.types.includes('restaurant') && (
             <Chip 
-              icon={<DirectionsWalk />} 
-              label="Restaurant" 
+              label={restaurant.types[0].replace(/_/g, ' ')} 
               size="small" 
               variant="outlined" 
             />
@@ -73,7 +71,10 @@ export const RestaurantCard: React.FC<RestaurantCardProps> = ({ restaurant }) =>
       </CardContent>
       
       <CardActions sx={{ justifyContent: 'space-between', p: 2, pt: 0 }}>
-        <VotingInterface restaurant={restaurant} />
+        <VotingInterface 
+          restaurantId={restaurant.id} 
+          session={session}
+        />
       </CardActions>
     </Card>
   )
