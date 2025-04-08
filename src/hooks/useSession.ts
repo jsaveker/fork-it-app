@@ -5,6 +5,7 @@ export function useSession() {
   const [session, setSession] = useState<GroupSession | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [loadingSessionId, setLoadingSessionId] = useState<string | null>(null)
 
   // Load session from URL on mount
   useEffect(() => {
@@ -47,9 +48,15 @@ export function useSession() {
       return session
     }
 
+    if (loadingSessionId === sessionId) {
+      console.log('Session load already in progress')
+      return null
+    }
+
     try {
       setIsLoading(true)
       setError(null)
+      setLoadingSessionId(sessionId)
       console.log('Loading session with ID:', sessionId)
       
       const response = await fetch(`${import.meta.env.VITE_API_URL}/sessions/${sessionId}`)
@@ -74,8 +81,9 @@ export function useSession() {
       return null
     } finally {
       setIsLoading(false)
+      setLoadingSessionId(null)
     }
-  }, [session])
+  }, [session, loadingSessionId])
 
   const createSession = useCallback(async (name: string = 'New Session', restaurants: Restaurant[] = []) => {
     try {
