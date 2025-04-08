@@ -28,7 +28,23 @@ export const RestaurantFinder = () => {
   const debouncedFilters = useDebounce(filters, 1000)
   const debouncedRadius = useDebounce(radius, 1000)
 
+  // Use restaurants from session if available
+  useEffect(() => {
+    if (session?.restaurants && session.restaurants.length > 0) {
+      console.log('Using restaurants from session:', session.restaurants)
+      setRestaurants(session.restaurants)
+      setHasAttemptedLoad(true)
+      setIsInitialLoad(false)
+    }
+  }, [session])
+
   const fetchRestaurants = useCallback(async () => {
+    // If we have restaurants from the session, don't fetch new ones
+    if (session?.restaurants && session.restaurants.length > 0) {
+      console.log('Using restaurants from session, skipping fetch')
+      return
+    }
+
     if (!debouncedLocation?.latitude || !debouncedLocation?.longitude) {
       console.log('No location available yet')
       return
@@ -77,14 +93,14 @@ export const RestaurantFinder = () => {
       setLoading(false)
       setHasAttemptedLoad(true)
     }
-  }, [debouncedLocation, debouncedFilters, debouncedRadius, isInitialLoad])
+  }, [debouncedLocation, debouncedFilters, debouncedRadius, isInitialLoad, session])
 
   // Effect to handle initial load and location/filter changes
   useEffect(() => {
-    if (debouncedLocation && !hasAttemptedLoad) {
+    if (debouncedLocation && !hasAttemptedLoad && !session?.restaurants) {
       fetchRestaurants()
     }
-  }, [debouncedLocation, debouncedFilters, debouncedRadius, fetchRestaurants, hasAttemptedLoad])
+  }, [debouncedLocation, debouncedFilters, debouncedRadius, fetchRestaurants, hasAttemptedLoad, session])
 
   const handleStartNewSession = async () => {
     try {
