@@ -550,6 +550,57 @@ export default {
           },
         });
       }
+      else if (path === '/autocomplete' && request.method === 'GET') {
+        // Get the input parameter
+        const input = params.input;
+        
+        if (!input) {
+          return new Response(JSON.stringify({ error: 'Input is required' }), {
+            status: 400,
+            headers: {
+              'Content-Type': 'application/json',
+              ...corsHeaders,
+            },
+          });
+        }
+        
+        // Use Google Places API to get autocomplete suggestions
+        const autocompleteUrl = `https://maps.googleapis.com/maps/api/place/autocomplete/json?input=${encodeURIComponent(input)}&types=address&components=country:us&key=${GOOGLE_PLACES_API_KEY}`;
+        const autocompleteResponse = await fetch(autocompleteUrl);
+        
+        if (!autocompleteResponse.ok) {
+          return new Response(JSON.stringify({ error: 'Failed to get autocomplete suggestions' }), {
+            status: 500,
+            headers: {
+              'Content-Type': 'application/json',
+              ...corsHeaders,
+            },
+          });
+        }
+        
+        const autocompleteData = await autocompleteResponse.json();
+        
+        if (autocompleteData.status !== 'OK' && autocompleteData.status !== 'ZERO_RESULTS') {
+          return new Response(JSON.stringify({ error: 'Error getting autocomplete suggestions' }), {
+            status: 500,
+            headers: {
+              'Content-Type': 'application/json',
+              ...corsHeaders,
+            },
+          });
+        }
+        
+        // Return the predictions
+        return new Response(JSON.stringify({
+          predictions: autocompleteData.predictions || [],
+          status: autocompleteData.status
+        }), {
+          headers: {
+            'Content-Type': 'application/json',
+            ...corsHeaders,
+          },
+        });
+      }
       
       // Return 404 for any other paths
       return new Response(JSON.stringify({ error: 'Not found' }), {

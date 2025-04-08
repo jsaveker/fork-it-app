@@ -1,11 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useLocation } from '../contexts/LocationContext';
-import { Button, TextField, Box, CircularProgress } from '@mui/material';
+import { Button, TextField, Box, CircularProgress, Autocomplete } from '@mui/material';
 
-declare global {
-  interface Window {
-    google: any;
-  }
+interface Prediction {
+  description: string;
+  place_id: string;
 }
 
 export const AddressInput: React.FC = () => {
@@ -13,47 +12,50 @@ export const AddressInput: React.FC = () => {
   const [address, setAddress] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [apiError, setApiError] = useState<string | null>(null);
-  const autocompleteRef = useRef<any>(null);
-  const inputRef = useRef<HTMLInputElement>(null);
+  const [predictions, setPredictions] = useState<Prediction[]>([]);
+  const [isLoadingPredictions, setIsLoadingPredictions] = useState(false);
+  const debounceTimer = useRef<number | null>(null);
 
-  useEffect(() => {
-    // Initialize Google Places Autocomplete
-    const initAutocomplete = () => {
-      if (!window.google || !inputRef.current) return;
+  // Fetch autocomplete suggestions
+  const fetchPredictions = async (input: string) => {
+    if (!input || input.length < 3) {
+      setPredictions([]);
+      return;
+    }
 
-      autocompleteRef.current = new window.google.maps.places.Autocomplete(inputRef.current, {
-        types: ['address'],
-        componentRestrictions: { country: 'us' },
-      });
-
-      autocompleteRef.current.addListener('place_changed', () => {
-        const place = autocompleteRef.current.getPlace();
-        if (place.geometry) {
-          setLocation({
-            latitude: place.geometry.location.lat(),
-            longitude: place.geometry.location.lng(),
-            accuracy: 0,
-            address: place.formatted_address,
-          });
-        }
-      });
-    };
-
-    // Load Google Places API script
-    const script = document.createElement('script');
-    script.src = `https://maps.googleapis.com/maps/api/js?key=${import.meta.env.VITE_GOOGLE_PLACES_API_KEY}&libraries=places`;
-    script.async = true;
-    script.onload = initAutocomplete;
-    document.head.appendChild(script);
-
-    return () => {
-      // Cleanup
-      if (autocompleteRef.current) {
-        window.google.maps.event.clearInstanceListeners(autocompleteRef.current);
+    setIsLoadingPredictions(true);
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/autocomplete?input=${encodeURIComponent(input)}`);
+      
+      if (!response.ok) {
+        throw new Error('Failed to fetch suggestions');
       }
-      document.head.removeChild(script);
-    };
-  }, [setLocation]);
+      
+      const data = await response.json();
+      setPredictions(data.predictions || []);
+    } catch (err) {
+      console.error('Error fetching suggestions:', err);
+      setPredictions([]);
+    } finally {
+      setIsLoadingPredictions(false);
+    }
+  };
+
+  // Debounce the input to avoid too many API calls
+  const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const value = event.target.value;
+    setAddress(value);
+    
+    // Clear previous timer
+    if (debounceTimer.current) {
+      window.clearTimeout(debounceTimer.current);
+    }
+    
+    // Set new timer
+    debounceTimer.current = window.setTimeout(() => {
+      fetchPredictions(value);
+    }, 300);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -94,6 +96,15 @@ export const AddressInput: React.FC = () => {
     }
   };
 
+  // Clean up timer on unmount
+  useEffect(() => {
+    return () => {
+      if (debounceTimer.current) {
+        window.clearTimeout(debounceTimer.current);
+      }
+    };
+  }, []);
+
   if (apiError) {
     return (
       <Box sx={{ width: '100%', maxWidth: 400, textAlign: 'center' }}>
@@ -105,17 +116,36 @@ export const AddressInput: React.FC = () => {
 
   return (
     <Box component="form" onSubmit={handleSubmit} sx={{ width: '100%', maxWidth: 400 }}>
-      <TextField
-        fullWidth
-        label="Enter your address"
-        variant="outlined"
+      <Autocomplete
+        freeSolo
+        options={predictions}
+        getOptionLabel={(option) => {
+          if (typeof option === 'string') return option;
+          return option.description;
+        }}
+        loading={isLoadingPredictions}
+        loadingText="Loading suggestions..."
+        noOptionsText="No suggestions found"
         value={address}
-        onChange={(e) => setAddress(e.target.value)}
-        error={!!error}
-        helperText={error}
-        disabled={isLoading || isSubmitting}
-        sx={{ mb: 2 }}
-        inputRef={inputRef}
+        onChange={(_, newValue) => {
+          if (typeof newValue === 'string') {
+            setAddress(newValue);
+          } else if (newValue) {
+            setAddress(newValue.description);
+          }
+        }}
+        renderInput={(params) => (
+          <TextField
+            {...params}
+            label="Enter your address"
+            variant="outlined"
+            onChange={handleInputChange}
+            error={!!error}
+            helperText={error}
+            disabled={isLoading || isSubmitting}
+            sx={{ mb: 2 }}
+          />
+        )}
       />
       <Button
         type="submit"
