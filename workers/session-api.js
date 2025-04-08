@@ -56,13 +56,55 @@ export default {
 
     try {
       // Handle different endpoints
-      if (path === '/geocode' && request.method === 'GET') {
-        // Geocode a ZIP code to coordinates
-        const zipCode = params.zipCode;
-        
-        if (!zipCode) {
-          return new Response(JSON.stringify({ error: 'ZIP code is required' }), {
-            status: 400,
+      if (path === '/geocode') {
+        // Handle GET request for ZIP code geocoding
+        if (request.method === 'GET') {
+          // Geocode a ZIP code to coordinates
+          const zipCode = params.zipCode;
+          
+          if (!zipCode) {
+            return new Response(JSON.stringify({ error: 'ZIP code is required' }), {
+              status: 400,
+              headers: {
+                'Content-Type': 'application/json',
+                ...corsHeaders,
+              },
+            });
+          }
+          
+          // Use Google Geocoding API to convert ZIP code to coordinates
+          const geocodeUrl = `https://maps.googleapis.com/maps/api/geocode/json?address=${zipCode}&key=${GOOGLE_PLACES_API_KEY}`;
+          const geocodeResponse = await fetch(geocodeUrl);
+          
+          if (!geocodeResponse.ok) {
+            return new Response(JSON.stringify({ error: 'Failed to geocode ZIP code' }), {
+              status: 500,
+              headers: {
+                'Content-Type': 'application/json',
+                ...corsHeaders,
+              },
+            });
+          }
+          
+          const geocodeData = await geocodeResponse.json();
+          
+          if (geocodeData.status !== 'OK' || !geocodeData.results || geocodeData.results.length === 0) {
+            return new Response(JSON.stringify({ error: 'ZIP code not found' }), {
+              status: 404,
+              headers: {
+                'Content-Type': 'application/json',
+                ...corsHeaders,
+              },
+            });
+          }
+          
+          const location = geocodeData.results[0].geometry.location;
+          
+          return new Response(JSON.stringify({
+            latitude: location.lat,
+            longitude: location.lng,
+            formatted_address: geocodeData.results[0].formatted_address
+          }), {
             headers: {
               'Content-Type': 'application/json',
               ...corsHeaders,
@@ -70,44 +112,61 @@ export default {
           });
         }
         
-        // Use Google Geocoding API to convert ZIP code to coordinates
-        const geocodeUrl = `https://maps.googleapis.com/maps/api/geocode/json?address=${zipCode}&key=${GOOGLE_PLACES_API_KEY}`;
-        const geocodeResponse = await fetch(geocodeUrl);
-        
-        if (!geocodeResponse.ok) {
-          return new Response(JSON.stringify({ error: 'Failed to geocode ZIP code' }), {
-            status: 500,
+        // Handle POST request for address geocoding
+        if (request.method === 'POST') {
+          // Parse the request body
+          const requestData = await request.json();
+          const address = requestData.address;
+          
+          if (!address) {
+            return new Response(JSON.stringify({ error: 'Address is required' }), {
+              status: 400,
+              headers: {
+                'Content-Type': 'application/json',
+                ...corsHeaders,
+              },
+            });
+          }
+          
+          // Use Google Geocoding API to convert address to coordinates
+          const geocodeUrl = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(address)}&key=${GOOGLE_PLACES_API_KEY}`;
+          const geocodeResponse = await fetch(geocodeUrl);
+          
+          if (!geocodeResponse.ok) {
+            return new Response(JSON.stringify({ error: 'Failed to geocode address' }), {
+              status: 500,
+              headers: {
+                'Content-Type': 'application/json',
+                ...corsHeaders,
+              },
+            });
+          }
+          
+          const geocodeData = await geocodeResponse.json();
+          
+          if (geocodeData.status !== 'OK' || !geocodeData.results || geocodeData.results.length === 0) {
+            return new Response(JSON.stringify({ error: 'Address not found' }), {
+              status: 404,
+              headers: {
+                'Content-Type': 'application/json',
+                ...corsHeaders,
+              },
+            });
+          }
+          
+          const location = geocodeData.results[0].geometry.location;
+          
+          return new Response(JSON.stringify({
+            latitude: location.lat,
+            longitude: location.lng,
+            formatted_address: geocodeData.results[0].formatted_address
+          }), {
             headers: {
               'Content-Type': 'application/json',
               ...corsHeaders,
             },
           });
         }
-        
-        const geocodeData = await geocodeResponse.json();
-        
-        if (geocodeData.status !== 'OK' || !geocodeData.results || geocodeData.results.length === 0) {
-          return new Response(JSON.stringify({ error: 'ZIP code not found' }), {
-            status: 404,
-            headers: {
-              'Content-Type': 'application/json',
-              ...corsHeaders,
-            },
-          });
-        }
-        
-        const location = geocodeData.results[0].geometry.location;
-        
-        return new Response(JSON.stringify({
-          latitude: location.lat,
-          longitude: location.lng,
-          zipCode: zipCode,
-        }), {
-          headers: {
-            'Content-Type': 'application/json',
-            ...corsHeaders,
-          },
-        });
       }
       else if (path === '/sessions' && request.method === 'POST') {
         // Create a new session
