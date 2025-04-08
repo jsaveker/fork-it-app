@@ -35,8 +35,8 @@ export interface FilterOptions {
 
 export interface RestaurantVote {
   restaurantId: string;
-  upvotes: number | string[];
-  downvotes: number | string[];
+  upvotes: string[];
+  downvotes: string[];
 }
 
 export interface GroupSession {
@@ -46,4 +46,5 @@ export interface GroupSession {
   votes: RestaurantVote[];
   createdAt: string;
   expires: number;
+  filters?: FilterOptions;
 } 

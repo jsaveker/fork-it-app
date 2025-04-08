@@ -88,7 +88,7 @@ export const RestaurantFinder = () => {
 
   const handleStartNewSession = async () => {
     try {
-      const newSession = await createSession()
+      const newSession = await createSession('New Session', restaurants)
       if (newSession) {
         console.log('New session created:', newSession)
       }

@@ -7,7 +7,7 @@ import {
 } from '@mui/material'
 import { ThumbUp, ThumbDown } from '@mui/icons-material'
 import { useVotingContext } from '../hooks/VotingProvider'
-import { GroupSession } from '../types/GroupSession'
+import { GroupSession } from '../types'
 
 interface VotingInterfaceProps {
   restaurantId: string

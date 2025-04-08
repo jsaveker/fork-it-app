@@ -93,26 +93,24 @@ export const vote = (
   if (!restaurantVote) {
     restaurantVote = {
       restaurantId,
-      upvotes: 0,
-      downvotes: 0
+      upvotes: [],
+      downvotes: []
     }
     session.votes.push(restaurantVote)
   }
 
-  // Update the vote count
+  // Update the vote arrays
   if (isUpvote) {
-    if (typeof restaurantVote.upvotes === 'number') {
-      restaurantVote.upvotes += 1
-    } else {
-      // If it's an array, add the user ID
+    if (!restaurantVote.upvotes.includes(userId)) {
       restaurantVote.upvotes = [...restaurantVote.upvotes, userId]
+      // Remove from downvotes if present
+      restaurantVote.downvotes = restaurantVote.downvotes.filter(id => id !== userId)
     }
   } else {
-    if (typeof restaurantVote.downvotes === 'number') {
-      restaurantVote.downvotes += 1
-    } else {
-      // If it's an array, add the user ID
+    if (!restaurantVote.downvotes.includes(userId)) {
       restaurantVote.downvotes = [...restaurantVote.downvotes, userId]
+      // Remove from upvotes if present
+      restaurantVote.upvotes = restaurantVote.upvotes.filter(id => id !== userId)
     }
   }
 

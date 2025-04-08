@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect } from 'react'
-import { GroupSession } from '../types/GroupSession'
+import { GroupSession, Restaurant } from '../types'
 
 export function useSession() {
   const [session, setSession] = useState<GroupSession | null>(null)
@@ -77,7 +77,7 @@ export function useSession() {
     }
   }, [session])
 
-  const createSession = useCallback(async (name: string = 'New Session') => {
+  const createSession = useCallback(async (name: string = 'New Session', restaurants: Restaurant[] = []) => {
     try {
       setIsLoading(true)
       setError(null)
@@ -87,7 +87,11 @@ export function useSession() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ name }),
+        body: JSON.stringify({ 
+          name,
+          restaurants,
+          votes: []
+        }),
       })
 
       if (!response.ok) {
