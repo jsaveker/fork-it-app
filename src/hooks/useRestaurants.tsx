@@ -54,7 +54,8 @@ export const RestaurantsProvider = ({ children }: { children: ReactNode }) => {
         filters: {
           minRating: currentFilters.minRating,
           minPrice: currentFilters.minPrice,
-          maxPrice: currentFilters.maxPrice
+          maxPrice: currentFilters.maxPrice,
+          maxDistance: currentFilters.maxDistance
         }
       })
       
