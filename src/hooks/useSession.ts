@@ -27,6 +27,7 @@ export function useSession() {
           await loadSessionById(sessionId);
         } catch (err) {
           console.error('Error loading session from URL:', err);
+          setError('Failed to load session from URL');
         }
       }
     };
@@ -37,6 +38,7 @@ export function useSession() {
   const loadSessionById = useCallback(async (sessionId: string) => {
     if (!sessionId) {
       console.error('Cannot load session: No session ID provided')
+      setError('No session ID provided')
       return null
     }
     
@@ -49,16 +51,25 @@ export function useSession() {
       setIsLoading(true)
       setError(null)
       console.log('Loading session with ID:', sessionId)
+      
       const response = await fetch(`${import.meta.env.VITE_API_URL}/sessions/${sessionId}`)
-      if (!response.ok) {
-        throw new Error('Failed to load session')
+      
+      if (response.status === 404) {
+        setError('Session not found')
+        return null
       }
+      
+      if (!response.ok) {
+        throw new Error(`Failed to load session: ${response.status}`)
+      }
+      
       const data = await response.json()
       console.log('Session loaded successfully:', data)
       setSession(data)
       return data
     } catch (err) {
-      setError('Failed to load session')
+      const errorMessage = err instanceof Error ? err.message : 'Failed to load session'
+      setError(errorMessage)
       console.error('Error loading session:', err)
       return null
     } finally {
@@ -70,6 +81,7 @@ export function useSession() {
     try {
       setIsLoading(true)
       setError(null)
+      
       const response = await fetch(`${import.meta.env.VITE_API_URL}/sessions`, {
         method: 'POST',
         headers: {
@@ -79,7 +91,7 @@ export function useSession() {
       })
 
       if (!response.ok) {
-        throw new Error('Failed to create session')
+        throw new Error(`Failed to create session: ${response.status}`)
       }
 
       const data = await response.json()
@@ -93,7 +105,8 @@ export function useSession() {
       
       return data
     } catch (err) {
-      setError('Failed to create session')
+      const errorMessage = err instanceof Error ? err.message : 'Failed to create session'
+      setError(errorMessage)
       console.error('Error creating session:', err)
       return null
     } finally {
