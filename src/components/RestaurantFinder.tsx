@@ -10,7 +10,7 @@ import { useDebounce } from '../hooks/useDebounce'
 
 export const RestaurantFinder = () => {
   const { location, error: locationError } = useLocation()
-  const { session, createSession, getSessionUrl } = useSession()
+  const { session, createSession, getSessionUrl, isLoading: isSessionLoading } = useSession()
   const { filters } = useFilters()
   const [restaurants, setRestaurants] = useState<Restaurant[]>([])
   const [loading, setLoading] = useState(false)
@@ -89,10 +89,7 @@ export const RestaurantFinder = () => {
     try {
       const newSession = await createSession()
       if (newSession) {
-        // Update URL with new session ID
-        const url = new URL(window.location.href)
-        url.searchParams.set('session', newSession.id)
-        window.history.pushState({}, '', url)
+        console.log('New session created:', newSession)
       }
     } catch (err) {
       console.error('Error creating new session:', err)
@@ -105,7 +102,6 @@ export const RestaurantFinder = () => {
     if (sessionUrl) {
       navigator.clipboard.writeText(sessionUrl)
         .then(() => {
-          // You might want to show a success message here
           console.log('Session URL copied to clipboard')
         })
         .catch(err => {
@@ -128,7 +124,9 @@ export const RestaurantFinder = () => {
   return (
     <div>
       <Paper sx={{ p: 2, m: 2 }}>
-        {!session ? (
+        {isSessionLoading ? (
+          <Typography>Loading session...</Typography>
+        ) : !session ? (
           <Button 
             variant="contained" 
             color="primary" 
@@ -167,6 +165,7 @@ export const RestaurantFinder = () => {
             <RestaurantCard 
               key={restaurant.id} 
               restaurant={restaurant}
+              session={session}
             />
           ))}
         </div>
