@@ -27,10 +27,10 @@ export interface LocationData {
 }
 
 export interface FilterOptions {
-  distance: number;
-  rating: number;
-  priceLevel: number[];
-  cuisineTypes: string[];
+  minRating: number;
+  maxDistance: number;
+  minPrice: number;
+  maxPrice: number;
 }
 
 export interface RestaurantVote {
