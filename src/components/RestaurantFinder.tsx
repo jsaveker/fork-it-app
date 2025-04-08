@@ -9,31 +9,31 @@ import { AddressInput } from './AddressInput'
 
 const RestaurantFinder = () => {
   const { location, isLoading: isLocationLoading, error: locationError } = useLocation()
-  const { session, isLoading: isSessionLoading, error: sessionError } = useVoting()
+  const { session, isLoading: isSessionLoading, error: sessionError, createSession } = useVoting()
   const [restaurants, setRestaurants] = useState<Restaurant[]>([])
   const [error, setError] = useState<string | null>(null)
   const [errorDetails, setErrorDetails] = useState<string | null>(null)
 
   useEffect(() => {
     const fetchRestaurants = async () => {
-      if (!location || !session) {
-        console.log('Missing required data:', { 
-          location: location ? {
-            latitude: location.latitude,
-            longitude: location.longitude,
-            accuracy: location.accuracy,
-            address: location.address
-          } : null,
-          session: session ? {
-            id: session.id,
-            name: session.name
-          } : null
-        })
+      if (!location) {
+        console.log('Missing location data:', location)
         return
       }
 
+      // Create a session if one doesn't exist
+      if (!session) {
+        console.log('No session found, creating a new one')
+        try {
+          await createSession('New Session')
+        } catch (err) {
+          console.error('Failed to create session:', err)
+          setError('Failed to create session')
+          return
+        }
+      }
+
       try {
-        // Log the exact location data being used
         console.log('Location data:', {
           latitude: location.latitude,
           longitude: location.longitude,
@@ -106,7 +106,7 @@ const RestaurantFinder = () => {
     }
 
     fetchRestaurants()
-  }, [location, session])
+  }, [location, session, createSession])
 
   if (isLocationLoading || isSessionLoading) {
     return (
