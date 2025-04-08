@@ -16,10 +16,10 @@ interface RestaurantsContextType {
 }
 
 const defaultFilters: FilterOptions = {
-  distance: 5, // miles
-  rating: 0,
-  priceLevel: [1, 2, 3, 4],
-  cuisineTypes: [],
+  minRating: 0,
+  maxDistance: 5000, // 5km in meters
+  minPrice: 1,
+  maxPrice: 4
 }
 
 const RestaurantsContext = createContext<RestaurantsContextType | undefined>(undefined)
@@ -46,18 +46,15 @@ export const RestaurantsProvider = ({ children }: { children: ReactNode }) => {
       // Combine current filters with any new options
       const currentFilters = { ...filters, ...(options || {}) }
       
-      // Convert miles to meters for the API
-      const radiusInMeters = currentFilters.distance * 1609.34
-      
       // Use the placesApi service to fetch restaurants
       const results = await searchNearbyRestaurants({
         latitude: location.latitude,
         longitude: location.longitude,
-        radius: radiusInMeters,
+        radius: currentFilters.maxDistance,
         filters: {
-          rating: currentFilters.rating,
-          priceLevel: currentFilters.priceLevel,
-          cuisineTypes: currentFilters.cuisineTypes
+          minRating: currentFilters.minRating,
+          minPrice: currentFilters.minPrice,
+          maxPrice: currentFilters.maxPrice
         }
       })
       
