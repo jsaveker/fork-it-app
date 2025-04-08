@@ -6,8 +6,6 @@ export interface LocationContextType {
   setLocation: (location: LocationData) => Promise<void>;
   isLoading: boolean;
   error: string | null;
-  loading?: boolean; // For backward compatibility
-  setLocationFromZipCode?: (zipCode: string) => Promise<void>;
 }
 
 export const LocationContext = createContext<LocationContextType | null>(null);
@@ -31,20 +29,6 @@ export const LocationProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     }
   }, []);
 
-  const setLocationFromZipCode = useCallback(async (zipCode: string) => {
-    setIsLoading(true);
-    setError(null);
-    try {
-      // Implement ZIP code geocoding here
-      // This is a placeholder - you'll need to implement the actual geocoding logic
-      throw new Error('ZIP code geocoding not implemented');
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to set location from ZIP code');
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
-
   return (
     <LocationContext.Provider
       value={{
@@ -52,8 +36,6 @@ export const LocationProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         setLocation,
         isLoading,
         error,
-        loading: isLoading, // For backward compatibility
-        setLocationFromZipCode,
       }}
     >
       {children}
