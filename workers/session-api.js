@@ -394,7 +394,17 @@ export default {
         }
         
         const { latitude, longitude, radius, filters } = await request.json();
-        console.log('Received request with params:', { latitude, longitude, radius, filters });
+        console.log('Received request with params:', { 
+          latitude, 
+          longitude, 
+          radius, 
+          filters,
+          locationType: {
+            latitude: typeof latitude,
+            longitude: typeof longitude,
+            radius: typeof radius
+          }
+        });
         
         if (!latitude || !longitude || !radius) {
           console.error('Missing required parameters:', { latitude, longitude, radius });
@@ -444,7 +454,15 @@ export default {
         }
         
         const data = await response.json();
-        console.log('Google Places API response status:', data.status);
+        console.log('Google Places API response:', {
+          status: data.status,
+          resultsCount: data.results?.length || 0,
+          firstResult: data.results?.[0] ? {
+            place_id: data.results[0].place_id,
+            name: data.results[0].name,
+            vicinity: data.results[0].vicinity
+          } : null
+        });
         
         // Handle ZERO_RESULTS as a valid response with empty results
         if (data.status === 'ZERO_RESULTS') {

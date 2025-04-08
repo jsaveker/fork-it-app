@@ -17,20 +17,28 @@ const RestaurantFinder = () => {
   useEffect(() => {
     const fetchRestaurants = async () => {
       if (!location || !session) {
-        console.log('Missing required data:', { location, session })
+        console.log('Missing required data:', { 
+          location: location ? {
+            latitude: location.latitude,
+            longitude: location.longitude,
+            accuracy: location.accuracy,
+            address: location.address
+          } : null,
+          session: session ? {
+            id: session.id,
+            name: session.name
+          } : null
+        })
         return
       }
 
       try {
-        console.log('Fetching restaurants with params:', {
+        // Log the exact location data being used
+        console.log('Location data:', {
           latitude: location.latitude,
           longitude: location.longitude,
-          radius: 1500,
-          filters: {
-            rating: 0,
-            priceLevel: [1, 2, 3, 4],
-            cuisineTypes: []
-          }
+          accuracy: location.accuracy,
+          address: location.address
         })
 
         // Validate location data
@@ -39,21 +47,25 @@ const RestaurantFinder = () => {
           throw new Error('Invalid location coordinates')
         }
 
+        // Log the exact request being made
+        const requestBody = {
+          latitude: location.latitude,
+          longitude: location.longitude,
+          radius: 1500,
+          filters: {
+            rating: 0,
+            priceLevel: [1, 2, 3, 4],
+            cuisineTypes: []
+          }
+        }
+        console.log('Making API request with body:', requestBody)
+
         const response = await fetch(`${import.meta.env.VITE_API_URL}/places/nearby`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify({
-            latitude: location.latitude,
-            longitude: location.longitude,
-            radius: 1500,
-            filters: {
-              rating: 0,
-              priceLevel: [1, 2, 3, 4],
-              cuisineTypes: []
-            }
-          })
+          body: JSON.stringify(requestBody)
         })
 
         if (!response.ok) {
@@ -63,7 +75,15 @@ const RestaurantFinder = () => {
         }
 
         const data = await response.json()
-        console.log('Restaurants response:', data)
+        console.log('API Response:', {
+          status: data.status,
+          resultsCount: data.results?.length || 0,
+          firstResult: data.results?.[0] ? {
+            id: data.results[0].id,
+            name: data.results[0].name,
+            vicinity: data.results[0].vicinity
+          } : null
+        })
         
         if (data.status === 'ZERO_RESULTS') {
           console.log('No restaurants found in the specified area')
