@@ -8,6 +8,9 @@ declare global {
   }
 }
 
+// Import environment variables from vite
+const GOOGLE_PLACES_API_KEY = import.meta.env.VITE_GOOGLE_PLACES_API_KEY;
+
 export const AddressInput: React.FC = () => {
   const { setLocation, isLoading, error } = useLocation();
   const [address, setAddress] = useState('');
@@ -18,7 +21,7 @@ export const AddressInput: React.FC = () => {
   useEffect(() => {
     // Load the Google Places API script
     const script = document.createElement('script');
-    script.src = `https://maps.googleapis.com/maps/api/js?key=${process.env.REACT_APP_GOOGLE_PLACES_API_KEY}&libraries=places`;
+    script.src = `https://maps.googleapis.com/maps/api/js?key=${GOOGLE_PLACES_API_KEY}&libraries=places`;
     script.async = true;
     script.defer = true;
     script.onload = initializeAutocomplete;
@@ -61,9 +64,14 @@ export const AddressInput: React.FC = () => {
       
       if (result.results && result.results[0]) {
         const location = result.results[0].geometry.location;
+        const lat = location.lat();
+        const lng = location.lng();
         await setLocation({
-          latitude: location.lat(),
-          longitude: location.lng(),
+          lat,
+          lng,
+          latitude: lat,
+          longitude: lng,
+          address: result.results[0].formatted_address,
         });
       }
     } catch (err) {
