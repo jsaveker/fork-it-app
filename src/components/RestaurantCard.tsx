@@ -9,7 +9,7 @@ import {
 } from '@mui/material'
 import { Restaurant } from '../types/Restaurant'
 import { VotingInterface } from './VotingInterface'
-import { GroupSession } from '../types/GroupSession'
+import { GroupSession } from '../types'
 
 interface RestaurantCardProps {
   restaurant: Restaurant

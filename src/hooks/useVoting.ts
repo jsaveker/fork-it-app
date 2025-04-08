@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
-import { GroupSession, RestaurantVote } from '../types'
+import { GroupSession, RestaurantVote, Restaurant } from '../types'
 import { getUpvotes, getDownvotes, upvoteRestaurant, downvoteRestaurant } from '../services/restaurantService.js'
 
 // Base URL for the API
@@ -119,17 +119,21 @@ export const useVoting = () => {
   }, [loadSessionById]);
 
   // Create a new session
-  const createSession = useCallback(async (name: string = 'New Session') => {
+  const createSession = useCallback(async (name: string = 'New Session', restaurants: Restaurant[] = []) => {
     try {
       setIsLoading(true)
       setError(null)
-      console.log('Creating session with name:', name)
+      console.log('Creating session with name:', name, 'and restaurants:', restaurants)
       const response = await fetch(`${API_BASE_URL}/sessions`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ name }),
+        body: JSON.stringify({ 
+          name,
+          restaurants,
+          votes: []
+        }),
       })
       
       if (!response.ok) {
