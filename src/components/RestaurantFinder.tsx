@@ -5,6 +5,7 @@ import { useLocation } from '../hooks/useLocation'
 import { useVoting } from '../hooks/useVoting'
 import { Restaurant } from '../types'
 import { Loader2 } from 'lucide-react'
+import { AddressInput } from './AddressInput'
 
 const RestaurantFinder = () => {
   const { location, isLoading: isLocationLoading, error: locationError } = useLocation()
@@ -17,7 +18,7 @@ const RestaurantFinder = () => {
       if (!location || !session) return
 
       try {
-        const response = await fetch(`/api/restaurants?lat=${location.lat}&lng=${location.lng}&radius=1500`)
+        const response = await fetch(`/api/restaurants?lat=${location.latitude}&lng=${location.longitude}&radius=1500`)
         if (!response.ok) {
           throw new Error('Failed to fetch restaurants')
         }
@@ -69,7 +70,8 @@ const RestaurantFinder = () => {
   if (!location) {
     return (
       <div className="text-center p-4">
-        <p>Please enable location access to find restaurants near you.</p>
+        <p className="mb-4">Please enter your address to find restaurants near you.</p>
+        <AddressInput />
       </div>
     )
   }
