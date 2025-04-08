@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
-import { Button, Typography, Paper } from '@mui/material'
+import { Button, Typography, Paper, Box } from '@mui/material'
 import { RestaurantCard } from './RestaurantCard'
+import { FilterButton } from './FilterButton'
 import { useLocation } from '../contexts/LocationContext'
 import { searchNearbyRestaurants } from '../services/googlePlacesApi'
 import { Restaurant } from '../types/Restaurant'
@@ -124,27 +125,30 @@ export const RestaurantFinder = () => {
   return (
     <div>
       <Paper sx={{ p: 2, m: 2 }}>
-        {isSessionLoading ? (
-          <Typography>Loading session...</Typography>
-        ) : !session ? (
-          <Button 
-            variant="contained" 
-            color="primary" 
-            onClick={handleStartNewSession}
-            disabled={loading}
-          >
-            Start New Voting Session
-          </Button>
-        ) : (
-          <Button 
-            variant="outlined" 
-            color="primary" 
-            onClick={handleShareSession}
-            disabled={loading}
-          >
-            Share Session
-          </Button>
-        )}
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          {isSessionLoading ? (
+            <Typography>Loading session...</Typography>
+          ) : !session ? (
+            <Button 
+              variant="contained" 
+              color="primary" 
+              onClick={handleStartNewSession}
+              disabled={loading}
+            >
+              Start New Voting Session
+            </Button>
+          ) : (
+            <Button 
+              variant="outlined" 
+              color="primary" 
+              onClick={handleShareSession}
+              disabled={loading}
+            >
+              Share Session
+            </Button>
+          )}
+          <FilterButton />
+        </Box>
       </Paper>
 
       {error && (
