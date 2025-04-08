@@ -15,8 +15,8 @@ export const AddressInput: React.FC = () => {
   const { setLocation, isLoading, error } = useLocation();
   const [address, setAddress] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const autocompleteRef = useRef<HTMLInputElement>(null);
-  const autocompleteInstance = useRef<any>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const autocompleteRef = useRef<any>(null);
 
   useEffect(() => {
     // Load the Google Places API script
@@ -34,17 +34,19 @@ export const AddressInput: React.FC = () => {
   }, []);
 
   const initializeAutocomplete = () => {
-    if (autocompleteRef.current && window.google) {
-      autocompleteInstance.current = new window.google.maps.places.Autocomplete(
-        autocompleteRef.current,
-        {
-          types: ['address'],
-          componentRestrictions: { country: 'us' },
-        }
-      );
+    if (inputRef.current && window.google) {
+      // Create the PlaceAutocompleteElement
+      const autocomplete = new window.google.maps.places.PlaceAutocompleteElement({
+        inputElement: inputRef.current,
+        componentRestrictions: { country: 'us' },
+      });
 
-      autocompleteInstance.current.addListener('place_changed', () => {
-        const place = autocompleteInstance.current.getPlace();
+      // Store the autocomplete instance
+      autocompleteRef.current = autocomplete;
+
+      // Add event listener for place selection
+      autocomplete.addListener('place_changed', () => {
+        const place = autocomplete.getPlace();
         if (place.geometry) {
           setAddress(place.formatted_address);
         }
@@ -84,7 +86,7 @@ export const AddressInput: React.FC = () => {
   return (
     <Box component="form" onSubmit={handleSubmit} sx={{ width: '100%', maxWidth: 400 }}>
       <TextField
-        inputRef={autocompleteRef}
+        inputRef={inputRef}
         fullWidth
         label="Enter your address"
         variant="outlined"
