@@ -25,31 +25,38 @@ export const VotingInterface: React.FC<VotingInterfaceProps> = ({ restaurant }) 
   const { handleVote, getVotes, session, isLoading: sessionLoading } = useVotingContext()
   const [votes, setVotes] = useState<VoteCount>({ upvotes: 0, downvotes: 0 })
   const [voteInProgress, setVoteInProgress] = useState(false)
+  const [votesLoaded, setVotesLoaded] = useState(false)
 
-  console.log('VotingInterface - Session state:', session)
-  console.log('VotingInterface - Restaurant:', restaurant)
-  console.log('VotingInterface - Session loading:', sessionLoading)
+  // Only log once per render
+  useEffect(() => {
+    if (!votesLoaded) {
+      console.log('VotingInterface - Session state:', session?.id)
+      console.log('VotingInterface - Restaurant:', restaurant.id)
+      console.log('VotingInterface - Session loading:', sessionLoading)
+    }
+  }, [session, restaurant.id, sessionLoading, votesLoaded])
 
   // Memoize the loadVotes function to prevent unnecessary re-renders
   const loadVotes = useCallback(async () => {
-    if (!session) return
+    if (!session || votesLoaded) return
     
     try {
       console.log('Loading votes for restaurant:', restaurant.id)
       const voteCount = await getVotes(restaurant.id)
       console.log('Votes loaded for restaurant:', restaurant.id, voteCount)
       setVotes(voteCount)
+      setVotesLoaded(true)
     } catch (error) {
       console.error('Error loading votes:', error)
     }
-  }, [restaurant.id, getVotes, session])
+  }, [restaurant.id, getVotes, session, votesLoaded])
 
-  // Load votes when restaurant or session changes
+  // Load votes when restaurant or session changes, but only once
   useEffect(() => {
-    if (session) {
+    if (session && !votesLoaded) {
       loadVotes()
     }
-  }, [restaurant.id, session, loadVotes])
+  }, [restaurant.id, session, loadVotes, votesLoaded])
 
   const handleUpvote = async () => {
     if (!session || voteInProgress) {
