@@ -142,7 +142,10 @@ export const useVoting = () => {
       
       const data = await response.json()
       console.log('Session created successfully:', data)
+      
+      // Set the session state
       setSession(data)
+      setSessionLoadAttempted(true)
       
       // Update URL with session ID
       const url = new URL(window.location.href)
