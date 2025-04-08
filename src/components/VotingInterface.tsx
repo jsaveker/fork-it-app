@@ -1,19 +1,17 @@
-import React, { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import {
   Box,
-  IconButton,
   Typography,
   CircularProgress,
-  Tooltip,
-  Alert,
+  Button,
 } from '@mui/material'
-import ThumbUpIcon from '@mui/icons-material/ThumbUp'
-import ThumbDownIcon from '@mui/icons-material/ThumbDown'
+import { ThumbUp, ThumbDown } from '@mui/icons-material'
 import { useVotingContext } from '../hooks/VotingProvider'
-import { Restaurant } from '../types/Restaurant'
+import { GroupSession } from '../types/GroupSession'
 
 interface VotingInterfaceProps {
-  restaurant: Restaurant
+  restaurantId: string
+  session: GroupSession | null
 }
 
 interface VoteCount {
@@ -21,76 +19,114 @@ interface VoteCount {
   downvotes: number
 }
 
-export const VotingInterface: React.FC<VotingInterfaceProps> = ({ restaurant }) => {
-  const { handleVote, getVotes, session, isLoading: sessionLoading } = useVotingContext()
+export const VotingInterface = ({ restaurantId, session }: VotingInterfaceProps) => {
+  const { getVotes, isLoading: sessionLoading } = useVotingContext()
   const [votes, setVotes] = useState<VoteCount>({ upvotes: 0, downvotes: 0 })
-  const [voteInProgress, setVoteInProgress] = useState(false)
   const [votesLoaded, setVotesLoaded] = useState(false)
+  const [userVote, setUserVote] = useState<'up' | 'down' | null>(null)
+  const [userId] = useState(() => crypto.randomUUID())
 
   // Only log once per render
   useEffect(() => {
     if (!votesLoaded) {
       console.log('VotingInterface - Session state:', session?.id)
-      console.log('VotingInterface - Restaurant:', restaurant.id)
+      console.log('VotingInterface - Restaurant:', restaurantId)
       console.log('VotingInterface - Session loading:', sessionLoading)
     }
-  }, [session, restaurant.id, sessionLoading, votesLoaded])
+  }, [session, restaurantId, sessionLoading, votesLoaded])
 
   // Memoize the loadVotes function to prevent unnecessary re-renders
   const loadVotes = useCallback(async () => {
     if (!session || votesLoaded) return
     
     try {
-      console.log('Loading votes for restaurant:', restaurant.id)
-      const voteCount = await getVotes(restaurant.id)
-      console.log('Votes loaded for restaurant:', restaurant.id, voteCount)
+      console.log('Loading votes for restaurant:', restaurantId)
+      const voteCount = await getVotes(restaurantId)
+      console.log('Votes loaded for restaurant:', restaurantId, voteCount)
       setVotes(voteCount)
       setVotesLoaded(true)
     } catch (error) {
       console.error('Error loading votes:', error)
     }
-  }, [restaurant.id, getVotes, session, votesLoaded])
+  }, [restaurantId, getVotes, session, votesLoaded])
 
   // Load votes when restaurant or session changes, but only once
   useEffect(() => {
     if (session && !votesLoaded) {
       loadVotes()
     }
-  }, [restaurant.id, session, loadVotes, votesLoaded])
+  }, [restaurantId, session, loadVotes, votesLoaded])
 
-  const handleUpvote = async () => {
-    if (!session || voteInProgress) {
-      console.error('Cannot vote without an active session or vote in progress')
+  useEffect(() => {
+    if (session?.votes) {
+      const vote = session.votes.find(v => v.restaurantId === restaurantId)
+      if (vote) {
+        setVotes({
+          upvotes: vote.upvotes.length,
+          downvotes: vote.downvotes.length
+        })
+        
+        // Check if current user has voted
+        if (vote.upvotes.includes(userId)) {
+          setUserVote('up')
+        } else if (vote.downvotes.includes(userId)) {
+          setUserVote('down')
+        } else {
+          setUserVote(null)
+        }
+      }
+    }
+  }, [session, restaurantId, userId])
+
+  const submitVote = async (voteType: 'up' | 'down') => {
+    if (!session) {
+      console.error('No active session')
       return
     }
-    
-    try {
-      setVoteInProgress(true)
-      await handleVote(restaurant.id, true)
-      // Update votes directly instead of reloading
-      setVotes(prev => ({ ...prev, upvotes: prev.upvotes + 1 }))
-    } catch (error) {
-      console.error('Error upvoting:', error)
-    } finally {
-      setVoteInProgress(false)
-    }
-  }
 
-  const handleDownvote = async () => {
-    if (!session || voteInProgress) {
-      console.error('Cannot vote without an active session or vote in progress')
-      return
-    }
-    
     try {
-      setVoteInProgress(true)
-      await handleVote(restaurant.id, false)
-      // Update votes directly instead of reloading
-      setVotes(prev => ({ ...prev, downvotes: prev.downvotes + 1 }))
-    } catch (error) {
-      console.error('Error downvoting:', error)
-    } finally {
-      setVoteInProgress(false)
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/sessions/${session.id}/votes`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          restaurantId,
+          userId,
+          voteType
+        })
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to vote')
+      }
+
+      // Update local state
+      if (voteType === 'up') {
+        if (userVote === 'up') {
+          setVotes(prev => ({ ...prev, upvotes: prev.upvotes - 1 }))
+          setUserVote(null)
+        } else {
+          if (userVote === 'down') {
+            setVotes(prev => ({ ...prev, downvotes: prev.downvotes - 1 }))
+          }
+          setVotes(prev => ({ ...prev, upvotes: prev.upvotes + 1 }))
+          setUserVote('up')
+        }
+      } else {
+        if (userVote === 'down') {
+          setVotes(prev => ({ ...prev, downvotes: prev.downvotes - 1 }))
+          setUserVote(null)
+        } else {
+          if (userVote === 'up') {
+            setVotes(prev => ({ ...prev, upvotes: prev.upvotes - 1 }))
+          }
+          setVotes(prev => ({ ...prev, downvotes: prev.downvotes + 1 }))
+          setUserVote('down')
+        }
+      }
+    } catch (err) {
+      console.error('Error voting:', err)
     }
   }
 
@@ -104,42 +140,34 @@ export const VotingInterface: React.FC<VotingInterfaceProps> = ({ restaurant }) 
     )
   }
 
+  if (!session) {
+    return (
+      <Typography variant="body2" color="text.secondary">
+        Start or join a voting session to vote on restaurants
+      </Typography>
+    )
+  }
+
   return (
     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-      {!session && (
-        <Alert severity="info" sx={{ flex: 1 }}>
-          Start or join a voting session to vote on restaurants
-        </Alert>
-      )}
-      
-      {session && (
-        <>
-          <Tooltip title={session ? "Upvote" : "Join a session to vote"}>
-            <span>
-              <IconButton 
-                onClick={handleUpvote} 
-                color="primary" 
-                disabled={!session || voteInProgress}
-              >
-                {voteInProgress ? <CircularProgress size={24} /> : <ThumbUpIcon />}
-              </IconButton>
-            </span>
-          </Tooltip>
-          <Typography>{votes.upvotes}</Typography>
-          <Tooltip title={session ? "Downvote" : "Join a session to vote"}>
-            <span>
-              <IconButton 
-                onClick={handleDownvote} 
-                color="error" 
-                disabled={!session || voteInProgress}
-              >
-                {voteInProgress ? <CircularProgress size={24} /> : <ThumbDownIcon />}
-              </IconButton>
-            </span>
-          </Tooltip>
-          <Typography>{votes.downvotes}</Typography>
-        </>
-      )}
+      <Button
+        size="small"
+        startIcon={<ThumbUp />}
+        onClick={() => submitVote('up')}
+        color={userVote === 'up' ? 'primary' : 'inherit'}
+        variant={userVote === 'up' ? 'contained' : 'outlined'}
+      >
+        {votes.upvotes}
+      </Button>
+      <Button
+        size="small"
+        startIcon={<ThumbDown />}
+        onClick={() => submitVote('down')}
+        color={userVote === 'down' ? 'primary' : 'inherit'}
+        variant={userVote === 'down' ? 'contained' : 'outlined'}
+      >
+        {votes.downvotes}
+      </Button>
     </Box>
   )
 } 
