@@ -24,7 +24,8 @@ export const useVoting = () => {
   // Load session by ID
   const loadSessionById = useCallback(async (sessionId: string) => {
     if (!sessionId) {
-      console.error('Cannot load session: No session ID provided')
+      console.log('No session ID provided, skipping session load')
+      setSessionLoadAttempted(true)
       return null
     }
     
@@ -43,9 +44,17 @@ export const useVoting = () => {
       setSessionLoadInProgress(true)
       console.log('Loading session with ID:', sessionId)
       const response = await fetch(`${API_BASE_URL}/sessions/${sessionId}`)
-      if (!response.ok) {
-        throw new Error('Failed to load session')
+      
+      if (response.status === 404) {
+        console.log('Session not found:', sessionId)
+        setError('Session not found')
+        return null
       }
+      
+      if (!response.ok) {
+        throw new Error(`Failed to load session: ${response.status}`)
+      }
+      
       const data = await response.json()
       console.log('Session loaded successfully:', data)
       setSession(data)
@@ -68,12 +77,14 @@ export const useVoting = () => {
       
       return data
     } catch (err) {
-      setError('Failed to load session')
+      const errorMessage = err instanceof Error ? err.message : 'Failed to load session'
+      setError(errorMessage)
       console.error('Error loading session:', err)
       return null
     } finally {
       setIsLoading(false)
       setSessionLoadInProgress(false)
+      setSessionLoadAttempted(true)
     }
   }, [session, sessionLoadInProgress])
 
@@ -98,8 +109,6 @@ export const useVoting = () => {
           await loadSessionById(sessionId);
         } catch (err) {
           console.error('Error loading session from URL:', err);
-        } finally {
-          setSessionLoadAttempted(true);
         }
       } else {
         setSessionLoadAttempted(true);
@@ -113,6 +122,7 @@ export const useVoting = () => {
   const createSession = useCallback(async (name: string = 'New Session') => {
     try {
       setIsLoading(true)
+      setError(null)
       console.log('Creating session with name:', name)
       const response = await fetch(`${API_BASE_URL}/sessions`, {
         method: 'POST',
@@ -123,7 +133,7 @@ export const useVoting = () => {
       })
       
       if (!response.ok) {
-        throw new Error('Failed to create session')
+        throw new Error(`Failed to create session: ${response.status}`)
       }
       
       const data = await response.json()
@@ -137,7 +147,8 @@ export const useVoting = () => {
       
       return data
     } catch (err) {
-      setError('Failed to create session')
+      const errorMessage = err instanceof Error ? err.message : 'Failed to create session'
+      setError(errorMessage)
       console.error('Error creating session:', err)
       return null
     } finally {
@@ -168,6 +179,11 @@ export const useVoting = () => {
 
   // Get votes for a restaurant
   const getVotes = useCallback(async (restaurantId: string): Promise<VoteCount> => {
+    if (!session?.id) {
+      console.log('No active session, returning default vote count')
+      return { upvotes: 0, downvotes: 0 }
+    }
+
     // First check if we have the votes in the session
     if (session && session.votes) {
       const sessionVote = session.votes.find((vote: RestaurantVote) => vote.restaurantId === restaurantId)
@@ -190,8 +206,8 @@ export const useVoting = () => {
     
     // If not in cache, fetch from API
     try {
-      const upvotes = await getUpvotes(session?.id || '', restaurantId)
-      const downvotes = await getDownvotes(session?.id || '', restaurantId)
+      const upvotes = await getUpvotes(session.id, restaurantId)
+      const downvotes = await getDownvotes(session.id, restaurantId)
       
       const voteCount = { 
         upvotes: upvotes.length, 
@@ -201,7 +217,7 @@ export const useVoting = () => {
       
       return voteCount
     } catch (err) {
-      console.error('Error getting votes:', err)
+      console.error('Error fetching votes:', err)
       return { upvotes: 0, downvotes: 0 }
     }
   }, [session, votesCache])
