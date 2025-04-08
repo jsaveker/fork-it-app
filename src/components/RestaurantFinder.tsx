@@ -18,13 +18,31 @@ const RestaurantFinder = () => {
       if (!location || !session) return
 
       try {
-        const response = await fetch(`${import.meta.env.VITE_API_URL}/restaurants?lat=${location.latitude}&lng=${location.longitude}&radius=1500`)
+        const response = await fetch(`${import.meta.env.VITE_API_URL}/places/nearby`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            latitude: location.latitude,
+            longitude: location.longitude,
+            radius: 1500,
+            filters: {
+              rating: 0,
+              priceLevel: [1, 2, 3, 4],
+              cuisineTypes: []
+            }
+          })
+        })
+
         if (!response.ok) {
           throw new Error('Failed to fetch restaurants')
         }
+
         const data = await response.json()
-        setRestaurants(data)
+        setRestaurants(data.results || [])
       } catch (err) {
+        console.error('Error fetching restaurants:', err)
         setError(err instanceof Error ? err.message : 'An error occurred')
       }
     }
@@ -62,23 +80,23 @@ const RestaurantFinder = () => {
   if (error) {
     return (
       <div className="text-center p-4">
-        <p className="text-red-500">{error}</p>
+        <p className="text-red-500 mb-4">{error}</p>
         <Button onClick={() => window.location.reload()}>Retry</Button>
       </div>
     )
   }
 
-  if (!location) {
+  if (!restaurants.length) {
     return (
       <div className="text-center p-4">
-        <p className="mb-4">Please enter your address to find restaurants near you.</p>
+        <p className="mb-4">No restaurants found in your area.</p>
         <AddressInput />
       </div>
     )
   }
 
   return (
-    <div className="space-y-4">
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
       {restaurants.map((restaurant) => (
         <RestaurantCard key={restaurant.id} restaurant={restaurant} />
       ))}
