@@ -3,7 +3,7 @@ import { ThemeProvider, CssBaseline, Box } from '@mui/material'
 import { lightTheme, darkTheme } from './theme'
 import Header from './components/Header'
 import GroupSession from './components/GroupSession'
-import RestaurantFinder from './components/RestaurantFinder'
+import { RestaurantFinder } from './components/RestaurantFinder'
 
 export default function App() {
   const [mode, setMode] = useState<'light' | 'dark'>('light')

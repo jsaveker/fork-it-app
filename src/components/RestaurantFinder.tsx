@@ -2,14 +2,11 @@ import { useState, useEffect, useCallback, useRef } from 'react'
 import { Button, Typography, Paper } from '@mui/material'
 import { RestaurantCard } from './RestaurantCard'
 import { useLocation } from '../contexts/LocationContext'
-import { useVoting } from '../hooks/useVoting'
 import { searchNearbyRestaurants } from '../services/googlePlacesApi'
 import { Restaurant } from '../types/Restaurant'
 import { useFilters } from '../hooks/useFilters'
 import { useSession } from '../hooks/useSession'
 import { useDebounce } from '../hooks/useDebounce'
-import { Loader2 } from 'lucide-react'
-import { AddressInput } from './AddressInput'
 
 export const RestaurantFinder = () => {
   const { location, error: locationError } = useLocation()
@@ -18,7 +15,7 @@ export const RestaurantFinder = () => {
   const [restaurants, setRestaurants] = useState<Restaurant[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [radius, setRadius] = useState(1500)
+  const [radius] = useState(1500)
   const [isInitialLoad, setIsInitialLoad] = useState(true)
   const [hasAttemptedLoad, setHasAttemptedLoad] = useState(false)
   const lastLocationRef = useRef<{ lat: number; lng: number } | null>(null)
