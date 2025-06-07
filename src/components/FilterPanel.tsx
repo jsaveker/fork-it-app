@@ -9,7 +9,7 @@ interface FilterPanelProps {
 
 export default function FilterPanel({ filters, onChange }: FilterPanelProps) {
   const [localMinPrice, setLocalMinPrice] = useState<number>(filters.minPrice)
-  const [debounceTimer, setDebounceTimer] = useState<number | null>(null)
+  const [debounceTimer, setDebounceTimer] = useState<ReturnType<typeof setTimeout> | null>(null)
 
   // Update local price when filters change
   useEffect(() => {

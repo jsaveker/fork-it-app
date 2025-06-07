@@ -11,9 +11,11 @@ describe('searchNearbyRestaurants', () => {
 
   it('builds the expected request', async () => {
     process.env.VITE_API_URL = 'https://example.com'
-    const mockJson = jest.fn().mockResolvedValue({ results: [] })
+    const mockJson = jest.fn<() => Promise<{ results: any[] }>>()
+    mockJson.mockResolvedValue({ results: [] })
     const mockResponse = { ok: true, json: mockJson }
-    const fetchMock = jest.fn().mockResolvedValue(mockResponse as any)
+    const fetchMock = jest.fn<(url: string, init?: any) => Promise<any>>()
+    fetchMock.mockResolvedValue(mockResponse as any)
     ;(global as any).fetch = fetchMock
 
     const { searchNearbyRestaurants } = await import('../googlePlacesApi')
@@ -30,7 +32,8 @@ describe('searchNearbyRestaurants', () => {
   it('throws when the API returns an error', async () => {
     process.env.VITE_API_URL = 'https://example.com'
     const mockResponse = { ok: false, json: jest.fn() }
-    ;(global as any).fetch = jest.fn().mockResolvedValue(mockResponse as any)
+    ;(global as any).fetch = jest.fn<(url: string, init?: any) => Promise<any>>()
+      .mockResolvedValue(mockResponse as any)
 
     const { searchNearbyRestaurants } = await import('../googlePlacesApi')
 
