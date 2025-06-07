@@ -5,6 +5,7 @@ import { BrowserRouter } from 'react-router-dom'
 import { LocationProvider } from './hooks/useLocation'
 import { RestaurantsProvider } from './hooks/useRestaurants'
 import { VotingProvider } from './hooks/VotingProvider'
+import { AuthProvider } from './contexts/AuthContext'
 import App from './App.tsx'
 import './index.css'
 
@@ -51,16 +52,18 @@ const theme = createTheme({
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <BrowserRouter>
-      <LocationProvider>
-        <RestaurantsProvider>
-          <VotingProvider>
-            <ThemeProvider theme={theme}>
-              <CssBaseline />
-              <App />
-            </ThemeProvider>
-          </VotingProvider>
-        </RestaurantsProvider>
-      </LocationProvider>
+      <AuthProvider>
+        <LocationProvider>
+          <RestaurantsProvider>
+            <VotingProvider>
+              <ThemeProvider theme={theme}>
+                <CssBaseline />
+                <App />
+              </ThemeProvider>
+            </VotingProvider>
+          </RestaurantsProvider>
+        </LocationProvider>
+      </AuthProvider>
     </BrowserRouter>
   </React.StrictMode>,
 ) 
