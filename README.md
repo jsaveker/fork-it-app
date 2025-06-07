@@ -59,7 +59,6 @@ This project is configured to be deployed on Cloudflare Pages. Simply connect yo
 
 1. Create a new Cloudflare Worker
 2. Set the following environment variables in the Cloudflare dashboard:
-   - `GOOGLE_PLACES_API_KEY`: Your Google Places API key
    - `SESSIONS_KV`: A KV namespace for storing sessions
 
 ## Technologies Used
@@ -70,7 +69,6 @@ This project is configured to be deployed on Cloudflare Pages. Simply connect yo
 - Material UI
 - Framer Motion
 - Cloudflare Workers
-- Google Places API
 
 ## License
 
@@ -78,7 +76,6 @@ This project is licensed under the Apache 2.0 - see the LICENSE file for details
 
 ## Acknowledgements
 
-- Google Places API for restaurant data
 - Material UI for component library
 - Framer Motion for animations
 - Cloudflare for hosting and serverless functions
