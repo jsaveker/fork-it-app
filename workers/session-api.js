@@ -394,10 +394,10 @@ export default {
         }
         
         const { latitude, longitude, radius, filters } = await request.json();
-        console.log('Received request with params:', { 
-          latitude, 
-          longitude, 
-          radius, 
+        console.log('Received request with params:', {
+          latitude,
+          longitude,
+          radius,
           filters,
           locationType: {
             latitude: typeof latitude,
@@ -405,6 +405,10 @@ export default {
             radius: typeof radius
           }
         });
+
+        const minRating = filters?.minRating ?? filters?.rating ?? 0;
+        const minPrice = filters?.minPrice ?? (Array.isArray(filters?.priceLevel) ? Math.min(...filters.priceLevel) : 0);
+        const maxPrice = filters?.maxPrice ?? (Array.isArray(filters?.priceLevel) ? Math.max(...filters.priceLevel) : 4);
         
         if (!latitude || !longitude || !radius) {
           console.error('Missing required parameters:', { latitude, longitude, radius });
@@ -425,10 +429,10 @@ export default {
           key: GOOGLE_PLACES_API_KEY,
         });
         
-        // Add optional filters if they're set
-        if (filters && filters.rating > 0) {
-          queryParams.append('minprice', '0');
-          queryParams.append('maxprice', '4');
+        // Add optional price filters if provided
+        if (minPrice > 0 || maxPrice < 4) {
+          queryParams.append('minprice', String(minPrice));
+          queryParams.append('maxprice', String(maxPrice));
         }
         
         const placesApiUrl = `https://maps.googleapis.com/maps/api/place/nearbysearch/json?${queryParams.toString()}`;
@@ -497,19 +501,16 @@ export default {
         const results = data.results
           .filter(place => {
             // Apply our custom filters
-            if (filters && filters.rating > 0 && (!place.rating || place.rating < filters.rating)) {
+            if (minRating > 0 && (!place.rating || place.rating < minRating)) {
               return false;
             }
-            
-            if (
-              filters &&
-              filters.priceLevel &&
-              filters.priceLevel.length > 0 &&
-              (!place.price_level || !filters.priceLevel.includes(place.price_level))
-            ) {
-              return false;
+
+            if (place.price_level !== undefined) {
+              if (place.price_level < minPrice || place.price_level > maxPrice) {
+                return false;
+              }
             }
-            
+
             if (filters && filters.cuisineTypes && filters.cuisineTypes.length > 0) {
               const placeTypes = place.types || [];
               const hasMatchingCuisine = filters.cuisineTypes.some(cuisine =>
