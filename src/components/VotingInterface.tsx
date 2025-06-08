@@ -1,3 +1,4 @@
+import { devLog } from '../utils/logger';
 import { useEffect, useState, useCallback } from 'react'
 import {
   Box,
@@ -29,9 +30,9 @@ export const VotingInterface = ({ restaurantId, session }: VotingInterfaceProps)
   // Only log once per render
   useEffect(() => {
     if (!votesLoaded) {
-      console.log('VotingInterface - Session state:', session?.id)
-      console.log('VotingInterface - Restaurant:', restaurantId)
-      console.log('VotingInterface - Session loading:', sessionLoading)
+      devLog('VotingInterface - Session state:', session?.id)
+      devLog('VotingInterface - Restaurant:', restaurantId)
+      devLog('VotingInterface - Session loading:', sessionLoading)
     }
   }, [session, restaurantId, sessionLoading, votesLoaded])
 
@@ -40,9 +41,9 @@ export const VotingInterface = ({ restaurantId, session }: VotingInterfaceProps)
     if (!session || votesLoaded) return
     
     try {
-      console.log('Loading votes for restaurant:', restaurantId)
+      devLog('Loading votes for restaurant:', restaurantId)
       const voteCount = await getVotes(restaurantId)
-      console.log('Votes loaded for restaurant:', restaurantId, voteCount)
+      devLog('Votes loaded for restaurant:', restaurantId, voteCount)
       setVotes(voteCount)
       setVotesLoaded(true)
     } catch (error) {

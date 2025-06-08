@@ -1,3 +1,4 @@
+import { devLog } from '../utils/logger';
 import { useState } from 'react'
 import {
   Box,
@@ -36,9 +37,9 @@ export default function GroupSession() {
     return querySessionId
   }
 
-  console.log('GroupSession component, session:', session?.id)
-  console.log('Checking for session ID in URL:', getSessionId())
-  console.log('Current session:', session)
+  devLog('GroupSession component, session:', session?.id)
+  devLog('Checking for session ID in URL:', getSessionId())
+  devLog('Current session:', session)
 
   // Show loading state while loading session
   if (isLoading) {

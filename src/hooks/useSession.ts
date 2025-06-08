@@ -1,3 +1,4 @@
+import { devLog } from '../utils/logger';
 import { useState, useCallback, useEffect } from 'react'
 import { GroupSession, Restaurant } from '../types'
 
@@ -23,7 +24,7 @@ export function useSession() {
       const sessionId = pathSessionId || querySessionId;
       
       if (sessionId) {
-        console.log('Found session ID in URL:', sessionId);
+        devLog('Found session ID in URL:', sessionId);
         try {
           await loadSessionById(sessionId);
         } catch (err) {
@@ -44,12 +45,12 @@ export function useSession() {
     }
     
     if (session?.id === sessionId) {
-      console.log('Session already loaded:', sessionId)
+      devLog('Session already loaded:', sessionId)
       return session
     }
 
     if (loadingSessionId === sessionId) {
-      console.log('Session load already in progress')
+      devLog('Session load already in progress')
       return null
     }
 
@@ -57,7 +58,7 @@ export function useSession() {
       setIsLoading(true)
       setError(null)
       setLoadingSessionId(sessionId)
-      console.log('Loading session with ID:', sessionId)
+      devLog('Loading session with ID:', sessionId)
       
       const response = await fetch(`${import.meta.env.VITE_API_URL}/sessions/${sessionId}`)
       
@@ -71,7 +72,7 @@ export function useSession() {
       }
       
       const data = await response.json()
-      console.log('Session loaded successfully:', data)
+      devLog('Session loaded successfully:', data)
       setSession(data)
       return data
     } catch (err) {
@@ -107,7 +108,7 @@ export function useSession() {
       }
 
       const data = await response.json()
-      console.log('Session created successfully:', data)
+      devLog('Session created successfully:', data)
       setSession(data)
       
       // Update URL with session ID
@@ -138,7 +139,7 @@ export function useSession() {
   // Prevent unnecessary session loading attempts
   const getSession = useCallback(async () => {
     if (!session) {
-      console.log('No active session')
+      devLog('No active session')
       return null
     }
     return session
