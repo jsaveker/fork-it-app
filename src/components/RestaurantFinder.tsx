@@ -1,3 +1,4 @@
+import { devLog } from '../utils/logger';
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { Button, Typography, Paper, Box } from '@mui/material'
 import { RestaurantCard } from './RestaurantCard'
@@ -31,7 +32,7 @@ export const RestaurantFinder = () => {
   // Use restaurants from session if available
   useEffect(() => {
     if (session?.restaurants && session.restaurants.length > 0) {
-      console.log('Using restaurants from session:', session.restaurants)
+      devLog('Using restaurants from session:', session.restaurants)
       setRestaurants(session.restaurants)
       setHasAttemptedLoad(true)
       setIsInitialLoad(false)
@@ -41,12 +42,12 @@ export const RestaurantFinder = () => {
   const fetchRestaurants = useCallback(async () => {
     // If we have restaurants from the session, don't fetch new ones
     if (session?.restaurants && session.restaurants.length > 0) {
-      console.log('Using restaurants from session, skipping fetch')
+      devLog('Using restaurants from session, skipping fetch')
       return
     }
 
     if (!debouncedLocation?.latitude || !debouncedLocation?.longitude) {
-      console.log('No location available yet')
+      devLog('No location available yet')
       return
     }
 
@@ -59,14 +60,14 @@ export const RestaurantFinder = () => {
     const radiusChanged = lastRadiusRef.current !== debouncedRadius
 
     if (!locationChanged && !filtersChanged && !radiusChanged && !isInitialLoad) {
-      console.log('Skipping fetch - no changes in location, filters, or radius')
+      devLog('Skipping fetch - no changes in location, filters, or radius')
       return
     }
 
     try {
       setLoading(true)
       setError(null)
-      console.log('Fetching restaurants with location:', debouncedLocation)
+      devLog('Fetching restaurants with location:', debouncedLocation)
       
       const results = await searchNearbyRestaurants({
         latitude: debouncedLocation.latitude,
@@ -75,7 +76,7 @@ export const RestaurantFinder = () => {
         filters: debouncedFilters
       })
       
-      console.log('Received results:', results)
+      devLog('Received results:', results)
       setRestaurants(results)
       
       // Update refs with current values
@@ -106,7 +107,7 @@ export const RestaurantFinder = () => {
     try {
       const newSession = await createSession('New Session', restaurants)
       if (newSession) {
-        console.log('New session created:', newSession)
+        devLog('New session created:', newSession)
       }
     } catch (err) {
       console.error('Error creating new session:', err)
@@ -119,7 +120,7 @@ export const RestaurantFinder = () => {
     if (sessionUrl) {
       navigator.clipboard.writeText(sessionUrl)
         .then(() => {
-          console.log('Session URL copied to clipboard')
+          devLog('Session URL copied to clipboard')
         })
         .catch(err => {
           console.error('Failed to copy URL:', err)

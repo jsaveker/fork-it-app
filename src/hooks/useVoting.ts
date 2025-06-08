@@ -1,3 +1,4 @@
+import { devLog } from '../utils/logger';
 import { useState, useEffect, useCallback } from 'react'
 import { GroupSession, RestaurantVote, Restaurant } from '../types'
 import { getUpvotes, getDownvotes, upvoteRestaurant, downvoteRestaurant } from '../services/restaurantService.js'
@@ -24,29 +25,29 @@ export const useVoting = () => {
   // Load session by ID
   const loadSessionById = useCallback(async (sessionId: string) => {
     if (!sessionId) {
-      console.log('No session ID provided, skipping session load')
+      devLog('No session ID provided, skipping session load')
       setSessionLoadAttempted(true)
       return null
     }
     
     if (session?.id === sessionId) {
-      console.log('Session already loaded:', sessionId)
+      devLog('Session already loaded:', sessionId)
       return session
     }
 
     if (sessionLoadInProgress) {
-      console.log('Session load already in progress')
+      devLog('Session load already in progress')
       return null
     }
 
     try {
       setIsLoading(true)
       setSessionLoadInProgress(true)
-      console.log('Loading session with ID:', sessionId)
+      devLog('Loading session with ID:', sessionId)
       const response = await fetch(`${API_BASE_URL}/sessions/${sessionId}`)
       
       if (response.status === 404) {
-        console.log('Session not found:', sessionId)
+        devLog('Session not found:', sessionId)
         setError('Session not found')
         return null
       }
@@ -56,7 +57,7 @@ export const useVoting = () => {
       }
       
       const data = await response.json()
-      console.log('Session loaded successfully:', data)
+      devLog('Session loaded successfully:', data)
       setSession(data)
       
       // Initialize votes cache from session data
@@ -104,7 +105,7 @@ export const useVoting = () => {
       const sessionId = pathSessionId || querySessionId;
       
       if (sessionId && (!session || session.id !== sessionId)) {
-        console.log('Found session ID in URL:', sessionId);
+        devLog('Found session ID in URL:', sessionId);
         try {
           await loadSessionById(sessionId);
         } catch (err) {
@@ -123,7 +124,7 @@ export const useVoting = () => {
     try {
       setIsLoading(true)
       setError(null)
-      console.log('Creating session with name:', name, 'and restaurants:', restaurants)
+      devLog('Creating session with name:', name, 'and restaurants:', restaurants)
       const response = await fetch(`${API_BASE_URL}/sessions`, {
         method: 'POST',
         headers: {
@@ -141,7 +142,7 @@ export const useVoting = () => {
       }
       
       const data = await response.json()
-      console.log('Session created successfully:', data)
+      devLog('Session created successfully:', data)
       
       // Set the session state
       setSession(data)
@@ -187,7 +188,7 @@ export const useVoting = () => {
   // Get votes for a restaurant
   const getVotes = useCallback(async (restaurantId: string): Promise<VoteCount> => {
     if (!session?.id) {
-      console.log('No active session, returning default vote count')
+      devLog('No active session, returning default vote count')
       return { upvotes: 0, downvotes: 0 }
     }
 

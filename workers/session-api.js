@@ -394,7 +394,6 @@ export default {
         }
         
         const { latitude, longitude, radius, filters } = await request.json();
-        console.log('Received request with params:', {
           latitude,
           longitude,
           radius,
@@ -436,7 +435,6 @@ export default {
         }
         
         const placesApiUrl = `https://maps.googleapis.com/maps/api/place/nearbysearch/json?${queryParams.toString()}`;
-        console.log('Making request to Google Places API:', placesApiUrl);
         
         // Make the API request to Google Places API
         const response = await fetch(placesApiUrl);
@@ -458,19 +456,9 @@ export default {
         }
         
         const data = await response.json();
-        console.log('Google Places API response:', {
-          status: data.status,
-          resultsCount: data.results?.length || 0,
-          firstResult: data.results?.[0] ? {
-            place_id: data.results[0].place_id,
-            name: data.results[0].name,
-            vicinity: data.results[0].vicinity
-          } : null
-        });
         
         // Handle ZERO_RESULTS as a valid response with empty results
         if (data.status === 'ZERO_RESULTS') {
-          console.log('No restaurants found in the specified area');
           return new Response(JSON.stringify({ 
             results: [],
             status: 'ZERO_RESULTS'
@@ -532,7 +520,6 @@ export default {
             types: place.types || [],
           }));
         
-        console.log(`Found ${results.length} restaurants after filtering`);
         
         return new Response(JSON.stringify({ results }), {
           headers: {

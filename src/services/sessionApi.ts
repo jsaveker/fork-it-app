@@ -1,3 +1,4 @@
+import { devLog } from '../utils/logger';
 import { GroupSession, Restaurant } from '../types'
 
 // Base URL for the API
@@ -7,9 +8,9 @@ const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://api.fork-it.cc'
  * Create a new session
  */
 export const createSession = async (name: string): Promise<GroupSession> => {
-  console.log('Creating new session with name:', name)
+  devLog('Creating new session with name:', name)
   try {
-    console.log('Sending request to:', `${API_BASE_URL}/sessions`)
+    devLog('Sending request to:', `${API_BASE_URL}/sessions`)
     const response = await fetch(`${API_BASE_URL}/sessions`, {
       method: 'POST',
       headers: {
@@ -24,7 +25,7 @@ export const createSession = async (name: string): Promise<GroupSession> => {
     }
 
     const session = await response.json()
-    console.log('Session created successfully:', session.id)
+    devLog('Session created successfully:', session.id)
     return session
   } catch (error) {
     console.error('Error creating session:', error)
@@ -36,9 +37,9 @@ export const createSession = async (name: string): Promise<GroupSession> => {
  * Get a session by ID
  */
 export const getSession = async (sessionId: string): Promise<GroupSession | null> => {
-  console.log('Getting session by ID:', sessionId)
+  devLog('Getting session by ID:', sessionId)
   try {
-    console.log('Sending request to:', `${API_BASE_URL}/sessions/${sessionId}`)
+    devLog('Sending request to:', `${API_BASE_URL}/sessions/${sessionId}`)
     const response = await fetch(`${API_BASE_URL}/sessions/${sessionId}`, {
       method: 'GET',
       headers: {
@@ -48,7 +49,7 @@ export const getSession = async (sessionId: string): Promise<GroupSession | null
 
     if (!response.ok) {
       if (response.status === 404) {
-        console.log('Session not found:', sessionId)
+        devLog('Session not found:', sessionId)
         return null
       }
       console.error('Failed to get session:', response.status, response.statusText)
@@ -56,7 +57,7 @@ export const getSession = async (sessionId: string): Promise<GroupSession | null
     }
 
     const session = await response.json()
-    console.log('Session retrieved successfully:', session.id)
+    devLog('Session retrieved successfully:', session.id)
     return session
   } catch (error) {
     console.error('Error getting session:', error)
@@ -68,9 +69,9 @@ export const getSession = async (sessionId: string): Promise<GroupSession | null
  * Update a session
  */
 export const updateSession = async (session: GroupSession): Promise<GroupSession> => {
-  console.log('Updating session:', session.id)
+  devLog('Updating session:', session.id)
   try {
-    console.log('Sending request to:', `${API_BASE_URL}/sessions/${session.id}`)
+    devLog('Sending request to:', `${API_BASE_URL}/sessions/${session.id}`)
     const response = await fetch(`${API_BASE_URL}/sessions/${session.id}`, {
       method: 'PUT',
       headers: {
@@ -85,7 +86,7 @@ export const updateSession = async (session: GroupSession): Promise<GroupSession
     }
 
     const updatedSession = await response.json()
-    console.log('Session updated successfully:', updatedSession.id)
+    devLog('Session updated successfully:', updatedSession.id)
     return updatedSession
   } catch (error) {
     console.error('Error updating session:', error)
@@ -102,9 +103,9 @@ export const vote = async (
   userId: string,
   isUpvote: boolean
 ): Promise<GroupSession> => {
-  console.log(`Voting ${isUpvote ? 'up' : 'down'} on restaurant:`, restaurantId, 'in session:', sessionId)
+  devLog(`Voting ${isUpvote ? 'up' : 'down'} on restaurant:`, restaurantId, 'in session:', sessionId)
   try {
-    console.log('Sending request to:', `${API_BASE_URL}/vote`)
+    devLog('Sending request to:', `${API_BASE_URL}/vote`)
     const response = await fetch(`${API_BASE_URL}/vote`, {
       method: 'POST',
       headers: {
@@ -124,7 +125,7 @@ export const vote = async (
     }
 
     const updatedSession = await response.json()
-    console.log('Vote successful, session updated:', updatedSession.id)
+    devLog('Vote successful, session updated:', updatedSession.id)
     return updatedSession
   } catch (error) {
     console.error('Error voting:', error)
@@ -139,9 +140,9 @@ export const addRestaurant = async (
   sessionId: string,
   restaurant: Restaurant
 ): Promise<GroupSession> => {
-  console.log('Adding restaurant to session:', sessionId, 'restaurant:', restaurant.id)
+  devLog('Adding restaurant to session:', sessionId, 'restaurant:', restaurant.id)
   try {
-    console.log('Sending request to:', `${API_BASE_URL}/add-restaurant`)
+    devLog('Sending request to:', `${API_BASE_URL}/add-restaurant`)
     const response = await fetch(`${API_BASE_URL}/add-restaurant`, {
       method: 'POST',
       headers: {
@@ -159,7 +160,7 @@ export const addRestaurant = async (
     }
 
     const updatedSession = await response.json()
-    console.log('Restaurant added successfully, session updated:', updatedSession.id)
+    devLog('Restaurant added successfully, session updated:', updatedSession.id)
     return updatedSession
   } catch (error) {
     console.error('Error adding restaurant:', error)
