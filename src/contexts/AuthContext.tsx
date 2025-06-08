@@ -1,5 +1,15 @@
-import { createContext, useContext, useState, ReactNode, useEffect } from 'react';
-import { GoogleOAuthProvider, googleLogout, useGoogleLogin } from '@react-oauth/google';
+import {
+  createContext,
+  useContext,
+  useState,
+  ReactNode,
+  useEffect,
+} from 'react'
+import {
+  GoogleOAuthProvider,
+  googleLogout,
+  useGoogleLogin,
+} from '@react-oauth/google'
 
 interface User {
   id: string;
@@ -16,49 +26,58 @@ interface AuthContextProps {
 const AuthContext = createContext<AuthContextProps | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
-  const [user, setUser] = useState<User | null>(null);
-  const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+  const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID
+
+  return (
+    <GoogleOAuthProvider clientId={googleClientId}>
+      <AuthInnerProvider>{children}</AuthInnerProvider>
+    </GoogleOAuthProvider>
+  )
+}
+
+const AuthInnerProvider = ({ children }: { children: ReactNode }) => {
+  const [user, setUser] = useState<User | null>(null)
 
   useEffect(() => {
-    const saved = localStorage.getItem('user');
+    const saved = localStorage.getItem('user')
     if (saved) {
-      setUser(JSON.parse(saved));
+      setUser(JSON.parse(saved))
     }
-  }, []);
+  }, [])
 
   const login = useGoogleLogin({
     onSuccess: tokenResponse => {
       const profile: User = {
         id: tokenResponse.access_token,
         name: 'Google User',
-      };
-      setUser(profile);
-      localStorage.setItem('user', JSON.stringify(profile));
+      }
+      setUser(profile)
+      localStorage.setItem('user', JSON.stringify(profile))
     },
-  });
+  })
 
-  const loginWithGoogle = () => login();
+  const loginWithGoogle = () => login()
 
   const logout = () => {
-    googleLogout();
-    setUser(null);
-    localStorage.removeItem('user');
-  };
+    googleLogout()
+    setUser(null)
+    localStorage.removeItem('user')
+  }
 
   const registerManual = (name: string) => {
-    const manualUser: User = { id: crypto.randomUUID(), name };
-    setUser(manualUser);
-    localStorage.setItem('user', JSON.stringify(manualUser));
-  };
+    const manualUser: User = { id: crypto.randomUUID(), name }
+    setUser(manualUser)
+    localStorage.setItem('user', JSON.stringify(manualUser))
+  }
 
   return (
-    <GoogleOAuthProvider clientId={googleClientId}>
-      <AuthContext.Provider value={{ user, loginWithGoogle, logout, registerManual }}>
-        {children}
-      </AuthContext.Provider>
-    </GoogleOAuthProvider>
-  );
-};
+    <AuthContext.Provider
+      value={{ user, loginWithGoogle, logout, registerManual }}
+    >
+      {children}
+    </AuthContext.Provider>
+  )
+}
 
 export const useAuth = () => {
   const ctx = useContext(AuthContext);
