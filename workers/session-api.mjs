@@ -394,16 +394,6 @@ export default {
         }
         
         const { latitude, longitude, radius, filters } = await request.json();
-          latitude,
-          longitude,
-          radius,
-          filters,
-          locationType: {
-            latitude: typeof latitude,
-            longitude: typeof longitude,
-            radius: typeof radius
-          }
-        });
 
         const minRating = filters?.minRating ?? filters?.rating ?? 0;
         const minPrice = filters?.minPrice ?? (Array.isArray(filters?.priceLevel) ? Math.min(...filters.priceLevel) : 0);
