@@ -1,9 +1,10 @@
-import { Box, Typography, IconButton, useTheme } from '@mui/material'
+import { Box, Typography, IconButton, useTheme, Button } from '@mui/material'
 import {
   Brightness4 as DarkModeIcon,
   Brightness7 as LightModeIcon,
 } from '@mui/icons-material'
 import { motion } from 'framer-motion'
+import { useAuth } from '../contexts/AuthContext'
 
 interface HeaderProps {
   mode: 'light' | 'dark';
@@ -12,6 +13,7 @@ interface HeaderProps {
 
 const Header = ({ mode, onToggleColorMode }: HeaderProps) => {
   const theme = useTheme()
+  const { user, logout } = useAuth()
 
   return (
     <Box
@@ -55,20 +57,32 @@ const Header = ({ mode, onToggleColorMode }: HeaderProps) => {
         </Typography>
       </Box>
 
-      <IconButton
-        onClick={onToggleColorMode}
-        color="inherit"
-        sx={{
-          transition: 'transform 0.2s',
-          '&:hover': {
-            transform: 'scale(1.1)',
-          },
-        }}
-      >
-        {mode === 'dark' ? <LightModeIcon /> : <DarkModeIcon />}
-      </IconButton>
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+        {user && (
+          <Typography variant="body1" sx={{ mr: 1 }}>
+            Hello, {user.name}
+          </Typography>
+        )}
+        <IconButton
+          onClick={onToggleColorMode}
+          color="inherit"
+          sx={{
+            transition: 'transform 0.2s',
+            '&:hover': {
+              transform: 'scale(1.1)',
+            },
+          }}
+        >
+          {mode === 'dark' ? <LightModeIcon /> : <DarkModeIcon />}
+        </IconButton>
+        {user && (
+          <Button onClick={logout} variant="outlined" size="small">
+            Logout
+          </Button>
+        )}
+      </Box>
     </Box>
   )
 }
 
-export default Header 
+export default Header

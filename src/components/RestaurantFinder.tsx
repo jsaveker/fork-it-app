@@ -9,6 +9,7 @@ import { Restaurant } from '../types/Restaurant'
 import { useFilters } from '../hooks/useFilters'
 import { useSession } from '../hooks/useSession'
 import { ResultsChart } from './ResultsChart'
+import CustomListCreator from './CustomListCreator'
 import { useDebounce } from '../hooks/useDebounce'
 
 export const RestaurantFinder = () => {
@@ -142,6 +143,7 @@ export const RestaurantFinder = () => {
 
   return (
     <div>
+      <CustomListCreator />
       <Paper sx={{ p: 2, m: 2 }}>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           {isSessionLoading ? (
