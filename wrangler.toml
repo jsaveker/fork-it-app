@@ -1,7 +1,7 @@
 name = "forkit"
 compatibility_date = "2024-09-23"
 compatibility_flags = ["nodejs_compat_v2"]
-main = "workers/session-api.js"
+main = "workers/session-api.mjs"
 
 # Specify that we're using ES modules
 
