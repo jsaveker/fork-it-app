@@ -1,7 +1,11 @@
 name = "forkit"
 compatibility_date = "2024-09-23"
 compatibility_flags = ["nodejs_compat_v2"]
-main = "workers/session-api.mjs"
+main = "workers/voting-api.mjs"
+
+[assets]
+# Ensure unknown paths render the SPA entrypoint
+not_found_handling = "single-page-application"
 
 # Specify that we're using ES modules
 
