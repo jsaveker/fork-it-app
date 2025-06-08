@@ -39,9 +39,10 @@ A fun web application that helps indecisive office workers figure out where to g
    npm install
    ```
 
-3. Create a `.env` file in the root directory with the API URL:
+3. Create a `.env` file in the root directory with the API URL and Google OAuth client ID:
    ```
    VITE_API_URL=https://api.fork-it.cc
+   VITE_GOOGLE_CLIENT_ID=YOUR_GOOGLE_CLIENT_ID
    ```
 
 4. Start the development server:
