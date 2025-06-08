@@ -8,9 +8,7 @@ export default defineConfig({
   build: {
     outDir: 'dist/client',
     emptyOutDir: true,
-  },
-  ssr: {
-    // Disable SSR
-    noExternal: true,
+    // Explicitly disable the SSR build
+    ssr: false,
   },
 }) 
