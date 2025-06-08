@@ -9,4 +9,8 @@ export default defineConfig({
     outDir: 'dist/client',
     emptyOutDir: true,
   },
+  ssr: {
+    // Disable SSR
+    noExternal: true,
+  },
 }) 
