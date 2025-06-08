@@ -12,8 +12,9 @@ import {
 } from '@react-oauth/google'
 
 interface User {
-  id: string;
-  name: string;
+  id: string
+  name: string
+  email: string
 }
 
 interface AuthContextProps {
@@ -46,13 +47,22 @@ const AuthInnerProvider = ({ children }: { children: ReactNode }) => {
   }, [])
 
   const login = useGoogleLogin({
-    onSuccess: tokenResponse => {
-      const profile: User = {
-        id: tokenResponse.access_token,
-        name: 'Google User',
+    onSuccess: async tokenResponse => {
+      try {
+        const res = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+          headers: { Authorization: `Bearer ${tokenResponse.access_token}` }
+        })
+        const data = await res.json()
+        const profile: User = {
+          id: tokenResponse.access_token,
+          name: data.name || 'Google User',
+          email: data.email || ''
+        }
+        setUser(profile)
+        localStorage.setItem('user', JSON.stringify(profile))
+      } catch (err) {
+        console.error('Failed to fetch Google profile', err)
       }
-      setUser(profile)
-      localStorage.setItem('user', JSON.stringify(profile))
     },
   })
 
@@ -65,7 +75,7 @@ const AuthInnerProvider = ({ children }: { children: ReactNode }) => {
   }
 
   const registerManual = (name: string) => {
-    const manualUser: User = { id: crypto.randomUUID(), name }
+    const manualUser: User = { id: crypto.randomUUID(), name, email: '' }
     setUser(manualUser)
     localStorage.setItem('user', JSON.stringify(manualUser))
   }
