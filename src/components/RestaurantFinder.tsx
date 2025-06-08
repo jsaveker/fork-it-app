@@ -7,6 +7,7 @@ import { searchNearbyRestaurants } from '../services/googlePlacesApi'
 import { Restaurant } from '../types/Restaurant'
 import { useFilters } from '../hooks/useFilters'
 import { useSession } from '../hooks/useSession'
+import { ResultsChart } from './ResultsChart'
 import { useDebounce } from '../hooks/useDebounce'
 
 export const RestaurantFinder = () => {
@@ -180,15 +181,23 @@ export const RestaurantFinder = () => {
           <Typography>Loading restaurants...</Typography>
         </Paper>
       ) : restaurants.length > 0 ? (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '1rem', padding: '1rem' }}>
-          {restaurants.map(restaurant => (
-            <RestaurantCard 
-              key={restaurant.id} 
-              restaurant={restaurant}
-              session={session}
-            />
-          ))}
-        </div>
+        <>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '1rem', padding: '1rem' }}>
+            {restaurants.map(restaurant => (
+              <RestaurantCard
+                key={restaurant.id}
+                restaurant={restaurant}
+                session={session}
+              />
+            ))}
+          </div>
+          <Paper sx={{ p: 2, m: 2 }}>
+            <Typography variant="h6" gutterBottom>
+              Voting Results
+            </Typography>
+            <ResultsChart session={session} />
+          </Paper>
+        </>
       ) : hasAttemptedLoad ? (
         <Paper sx={{ p: 2, m: 2 }}>
           <Typography>No restaurants found. Try adjusting your filters or increasing the search radius.</Typography>
